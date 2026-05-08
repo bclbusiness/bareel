@@ -820,24 +820,24 @@
       <div class="field">
         <label>Timing mode</label>
         <div class="radio-group">
-          <div class="radio-option selected" id="radio-total" onclick="setTimingMode('total')">
-            <div class="radio-dot"></div>
-            <div>
-              <span class="radio-label">Set total stand up time</span>
-              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Total time is divided amongst number of participants.</div>
-            </div>
-          </div>
-          <div class="radio-option" id="radio-per-person" onclick="setTimingMode('per-person')">
+          <div class="radio-option selected" id="radio-per-person" onclick="setTimingMode('per-person')">
             <div class="radio-dot"></div>
             <div>
               <span class="radio-label">Set time per participant</span>
               <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Each participant is given the specified amount of time.</div>
             </div>
           </div>
+          <div class="radio-option" id="radio-total" onclick="setTimingMode('total')">
+            <div class="radio-dot"></div>
+            <div>
+              <span class="radio-label">Set total stand up time</span>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Total time is divided amongst number of participants.</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="field" id="field-total-duration">
+      <div class="field hidden" id="field-total-duration">
         <label>Total stand up duration</label>
         <div class="select-wrap">
           <select id="duration-select">
@@ -905,7 +905,7 @@
         </div>
       </div>
 
-      <div class="field hidden" id="field-per-person-duration">
+      <div class="field" id="field-per-person-duration">
         <label>Time per participant</label>
         <div class="select-wrap">
           <select id="per-person-select">
@@ -1004,18 +1004,18 @@
       <div class="field" style="margin-bottom:16px">
         <label>Timing mode</label>
         <div class="radio-group">
-          <div class="radio-option selected" id="edit-radio-total" onclick="setEditTimingMode('total')">
-            <div class="radio-dot"></div>
-            <div>
-              <span class="radio-label">Set total stand up time</span>
-              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Total time is divided amongst number of participants.</div>
-            </div>
-          </div>
-          <div class="radio-option" id="edit-radio-per-person" onclick="setEditTimingMode('per-person')">
+          <div class="radio-option selected" id="edit-radio-per-person" onclick="setEditTimingMode('per-person')">
             <div class="radio-dot"></div>
             <div>
               <span class="radio-label">Set time per participant</span>
               <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Each participant is given the specified amount of time.</div>
+            </div>
+          </div>
+          <div class="radio-option" id="edit-radio-total" onclick="setEditTimingMode('total')">
+            <div class="radio-dot"></div>
+            <div>
+              <span class="radio-label">Set total stand up time</span>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Total time is divided amongst number of participants.</div>
             </div>
           </div>
         </div>
@@ -1119,8 +1119,8 @@
     </div>
 
     <div class="waiting-actions">
-      <button class="btn btn-primary" id="btn-begin" onclick="beginStandup()" disabled>Begin stand up</button>
       <button class="btn btn-outline" onclick="editStandup()"><i class="ti ti-pencil" style="font-size:14px"></i> Edit stand up</button>
+      <button class="btn btn-primary" id="btn-begin" onclick="beginStandup()" disabled>Begin stand up</button>
       <span id="btn-waiting-status" style="font-size:13px;color:var(--text-secondary);align-self:center;">Waiting for participants to join...</span>
     </div>
   </div>
@@ -1508,7 +1508,7 @@ function renderCodeDigits(code, containerId) {
 }
 
 // ── TIMING MODE ─────────────────────────────────────────────────────────────────────────────────
-let timingMode = 'total';
+let timingMode = 'per-person';
 
 function setTimingMode(mode) {
   timingMode = mode;

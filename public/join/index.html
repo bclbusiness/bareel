@@ -316,9 +316,23 @@ async function findRoom() {
 
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
-  // Auto-focus first box
-  const first = document.querySelector('.code-input-box');
-  if (first) first.focus();
+
+  // Pre-fill code from URL param e.g. /join/?code=123456
+  const urlParams = new URLSearchParams(window.location.search);
+  const prefilledCode = urlParams.get('code');
+  if (prefilledCode) {
+    const boxes = document.querySelectorAll('.code-input-box');
+    prefilledCode.split('').forEach((ch, i) => {
+      if (boxes[i]) boxes[i].value = ch;
+    });
+    // focus name field since code is already filled
+    const nameInput = document.getElementById('participant-name');
+    if (nameInput) nameInput.focus();
+  } else {
+    // focus first code box
+    const first = document.querySelector('.code-input-box');
+    if (first) first.focus();
+  }
 });
 </script>
 </body>

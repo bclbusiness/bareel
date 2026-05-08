@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join — Bareel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #534AB7;
+      --brand-light: #EEEDFE;
+      --brand-dark: #26215C;
+      --brand-mid: #7F77DD;
+      --red: #C0392B;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b6b8a;
+      --text-tertiary: #9999b8;
+      --bg: #f7f7fc;
+      --bg-card: #ffffff;
+      --border: #e4e4f0;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --shadow-lg: 0 8px 40px rgba(83,74,183,0.14);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo {
+      width: 32px; height: 32px;
+      background: var(--brand);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 600; color: white;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .brand-name { font-size: 15px; font-weight: 600; color: var(--text-primary); text-decoration: none; }
+
+    /* ── BODY ── */
+    .join-body {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px 20px;
+    }
+
+    .join-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      width: 100%; max-width: 400px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .join-logo {
+      width: 48px; height: 48px;
+      background: var(--brand);
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 600; color: white;
+      margin: 0 auto 16px;
+    }
+
+    h1 {
+      font-size: 20px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 14px; color: var(--text-secondary);
+      margin-bottom: 28px; line-height: 1.5;
+    }
+
+    .field { margin-bottom: 20px; text-align: left; }
+    label {
+      display: block;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    /* Code inputs */
+    .code-inputs {
+      display: flex; gap: 8px; justify-content: center;
+    }
+    .code-input-box {
+      width: 44px; height: 54px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      font-size: 24px; font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      color: var(--brand-dark);
+      text-align: center;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .code-input-box:focus {
+      outline: none;
+      border-color: var(--brand-mid);
+      box-shadow: 0 0 0 3px rgba(127,119,221,0.15);
+      background: var(--brand-light);
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; border: none;
+      transition: all 0.15s;
+      width: 100%;
+    }
+    .btn-primary {
+      background: var(--brand); color: white;
+      box-shadow: 0 2px 8px rgba(83,74,183,0.3);
+    }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .error-msg {
+      font-size: 13px; color: var(--red);
+      background: #fee8e8; border-radius: var(--radius-sm);
+      padding: 8px 12px; margin-bottom: 12px;
+      display: none; text-align: left;
+    }
+    .error-msg.visible { display: block; }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .join-footer {
+      font-size: 12px; color: var(--text-tertiary);
+      margin-top: 24px;
+    }
+    .join-footer span { color: var(--brand); }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="logo">B</a>
+  <a href="/" class="brand-name">Bareel</a>
+</header>
+
+<main class="join-body">
+  <div class="join-card">
+    <div class="join-logo">B</div>
+    <h1>Join a session</h1>
+    <p class="subtitle">Enter the 6-digit code shared by your host.</p>
+
+    <div class="field">
+      <label>Session code</label>
+      <div class="code-inputs" id="code-input-boxes"></div>
+    </div>
+
+    <div class="error-msg" id="join-error"></div>
+
+    <button class="btn btn-primary" id="btn-find" onclick="findRoom()">
+      Find session
+    </button>
+
+    <p class="join-footer">Joining from <span>bareel.app</span></p>
+  </div>
+</main>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// ─────────────────────────────────────────────────────────────────────────
+
+const { createClient } = supabase;
+let db;
+try {
+  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch(e) { console.warn('Bareel: Supabase init failed', e); }
+
+// Tool type → path mapping
+// Add new tools here as they are built
+const TOOL_PATHS = {
+  'standup': '/standup/',
+};
+
+// Build 6-digit code input boxes
+function buildCodeInputs() {
+  const wrap = document.getElementById('code-input-boxes');
+  wrap.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.maxLength = 1;
+    inp.className = 'code-input-box';
+    inp.inputMode = 'numeric';
+    inp.pattern = '[0-9]*';
+    inp.addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/\D/g, '');
+      if (e.target.value && i < 5) wrap.children[i + 1].focus();
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !e.target.value && i > 0) wrap.children[i - 1].focus();
+    });
+    inp.addEventListener('paste', e => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+      text.split('').forEach((ch, idx) => { if (wrap.children[idx]) wrap.children[idx].value = ch; });
+      const next = Math.min(text.length, 5);
+      wrap.children[next].focus();
+    });
+    wrap.appendChild(inp);
+  }
+}
+
+async function findRoom() {
+  const btn = document.getElementById('btn-find');
+  const errEl = document.getElementById('join-error');
+  errEl.classList.remove('visible');
+
+  if (!db) {
+    errEl.textContent = 'Service not configured. Please contact the session organiser.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  const boxes = document.querySelectorAll('.code-input-box');
+  const code = Array.from(boxes).map(b => b.value).join('');
+
+  if (code.length < 6) {
+    errEl.textContent = 'Please enter the full 6-digit code.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+
+  const { data: room, error } = await db
+    .from('rooms')
+    .select('tool_type, status')
+    .eq('code', code)
+    .single();
+
+  btn.innerHTML = 'Find session';
+  btn.disabled = false;
+
+  if (error || !room) {
+    errEl.textContent = 'Room not found. Check the code and try again.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  if (room.status === 'complete') {
+    errEl.textContent = 'This session has already finished.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  const toolType = room.tool_type || 'standup';
+  const path = TOOL_PATHS[toolType];
+
+  if (!path) {
+    errEl.textContent = 'Unknown session type. Please contact your host.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  // Redirect to the correct app with code pre-filled
+  window.location.href = `${path}?join&code=${code}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildCodeInputs();
+  // Auto-focus first box
+  const first = document.querySelector('.code-input-box');
+  if (first) first.focus();
+});
+</script>
+</body>
+</html>

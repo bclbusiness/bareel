@@ -174,17 +174,26 @@
   <div class="join-card">
     <div class="join-logo">B</div>
     <h1>Join a session</h1>
-    <p class="subtitle">Enter the 6-digit code shared by your host.</p>
+    <p class="subtitle">Enter the code shared by your host and your name to join.</p>
 
     <div class="field">
       <label>Session code</label>
       <div class="code-inputs" id="code-input-boxes"></div>
     </div>
 
+    <div class="field">
+      <label>Your name</label>
+      <input type="text" id="participant-name" placeholder="Enter your name" maxlength="40"
+        style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text-primary);transition:border-color 0.15s,box-shadow 0.15s;appearance:none;"
+        onfocus="this.style.borderColor='var(--brand-mid)';this.style.boxShadow='0 0 0 3px rgba(127,119,221,0.15)'"
+        onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"
+      />
+    </div>
+
     <div class="error-msg" id="join-error"></div>
 
     <button class="btn btn-primary" id="btn-find" onclick="findRoom()">
-      Find session
+      Join session
     </button>
 
     <p class="join-footer">Joining from <span>bareel.app</span></p>
@@ -253,10 +262,18 @@ async function findRoom() {
 
   const boxes = document.querySelectorAll('.code-input-box');
   const code = Array.from(boxes).map(b => b.value).join('');
+  const name = document.getElementById('participant-name').value.trim();
 
   if (code.length < 6) {
     errEl.textContent = 'Please enter the full 6-digit code.';
     errEl.classList.add('visible');
+    return;
+  }
+
+  if (!name) {
+    errEl.textContent = 'Please enter your name.';
+    errEl.classList.add('visible');
+    document.getElementById('participant-name').focus();
     return;
   }
 
@@ -294,7 +311,7 @@ async function findRoom() {
   }
 
   // Redirect to the correct app with code pre-filled
-  window.location.href = `${path}?join&code=${code}`;
+  window.location.href = `${path}?join&code=${code}&name=${encodeURIComponent(name)}`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {

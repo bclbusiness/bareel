@@ -1721,18 +1721,20 @@ async function saveEditStandup() {
 
   if (error) { console.error(error); return; }
 
-  // update local state
+  // update local state — reset participants to force DOM rebuild
   state.roomName = name;
   state.questions = questions;
   state.totalSeconds = totalSeconds;
   state.fixedPerPersonSeconds = perPersonSeconds;
   state.timingMode = editMode;
-  state.participants = updatedParticipants;
+  state.participants = []; // reset so updateWaitingParticipants always redraws
 
   // refresh waiting room display
   document.getElementById('waiting-standup-name').textContent = name;
-  const totalMins = Math.round(totalSeconds / 60);
-  document.getElementById('waiting-total-label').textContent = `${totalMins} min total`;
+  if (editMode !== 'per-person') {
+    const totalMins = Math.round(totalSeconds / 60);
+    document.getElementById('waiting-total-label').textContent = `${totalMins} min total`;
+  }
   updateWaitingParticipants(state.participants);
 
   // show saved confirmation
@@ -1753,8 +1755,12 @@ function showWaitingRoom(roomData) {
 
   renderCodeDigits(state.roomCode, 'waiting-code-digits');
 
-  const totalMins = Math.round(state.totalSeconds / 60);
-  document.getElementById('waiting-total-label').textContent = `${totalMins} min total`;
+  if (state.timingMode !== 'per-person') {
+    const totalMins = Math.round(state.totalSeconds / 60);
+    document.getElementById('waiting-total-label').textContent = `${totalMins} min total`;
+  } else {
+    document.getElementById('waiting-total-label').textContent = 'Approx. 0 mins total';
+  }
 
   updateWaitingParticipants(roomData.participants || []);
   showScreen('screen-waiting');
@@ -1773,9 +1779,10 @@ function updateWaitingParticipants(participants) {
   const btn   = document.getElementById('btn-begin');
   const statusBtn = document.getElementById('btn-waiting-status');
 
-  count.textContent = `${participants.length} joined`;
+  const pCount = participants.length;
+  count.textContent = pCount === 1 ? '1 person has joined' : `${pCount} people have joined`;
 
-  if (participants.length === 0) {
+  if (pCount === 0) {
     if (changed) list.innerHTML = '<p style="font-size:13px;color:var(--text-tertiary);padding:8px 0">Waiting for participants...</p>';
     perEl.textContent = '— per person';
     btn.disabled = true;
@@ -1784,10 +1791,17 @@ function updateWaitingParticipants(participants) {
   }
 
   let perSec;
+  const totalLabel = document.getElementById('waiting-total-label');
   if (state.timingMode === 'per-person' && state.fixedPerPersonSeconds) {
     perSec = state.fixedPerPersonSeconds;
+    // calculate approx total from participants * per-person time
+    const approxTotalSecs = perSec * participants.length;
+    const approxMins = Math.round(approxTotalSecs / 60);
+    totalLabel.textContent = `Approx. ${approxMins} min${approxMins !== 1 ? 's' : ''} total`;
   } else {
     perSec = state.totalSeconds ? Math.floor(state.totalSeconds / participants.length) : 0;
+    const totalMins = Math.round(state.totalSeconds / 60);
+    totalLabel.textContent = `${totalMins} min total`;
   }
   const perMin = Math.floor(perSec / 60);
   const perSecRem = perSec % 60;
@@ -1805,7 +1819,7 @@ function updateWaitingParticipants(participants) {
   }
 
   btn.disabled = false;
-  statusBtn.textContent = `${participants.length} participant${participants.length !== 1 ? 's' : ''} have joined`;
+  statusBtn.textContent = pCount === 1 ? '1 person has joined' : `${pCount} people have joined`;
 }
 
 // ── PARTICIPANT JOIN ────────────────────────────────────────────────────────

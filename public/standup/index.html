@@ -1315,8 +1315,8 @@
 <script>
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 // REPLACE THESE TWO VALUES WITH YOUR SUPABASE PROJECT URL AND ANON KEY
-const SUPABASE_URL = 'https://usrvxlmmepkuhneubxbm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcnZ4bG1tZXBrdWhuZXVieGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjIwMjgsImV4cCI6MjA5MzYzODAyOH0.x6bzlk_PIIq9jYsjmmuKblMlC2iK-scjAlHLZwv0tRE';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 // ───────────────────────────────────────────────────────────────────────────
 
 const { createClient } = supabase;
@@ -1577,6 +1577,7 @@ async function createRoom() {
     total_seconds: totalSeconds,
     per_person_seconds: perPersonSeconds,
     timing_mode: timingModeValue,
+    tool_type: 'standup',
     status: 'waiting',
     participants: initialParticipants,
     speaker_order: [],
@@ -2377,6 +2378,16 @@ document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
   initOnboarding();
   initAllDragRows();
+
+  // Pre-fill code from URL param e.g. ?join&code=123456
+  const urlParams = new URLSearchParams(window.location.search);
+  const prefilledCode = urlParams.get('code');
+  if (prefilledCode) {
+    const boxes = document.querySelectorAll('.code-input-box');
+    prefilledCode.split('').forEach((ch, i) => {
+      if (boxes[i]) boxes[i].value = ch;
+    });
+  }
 
   // If URL contains ?join, show join screen for participants
   if (window.location.search.includes('join') || window.location.pathname.includes('join') || window.location.pathname === '/join' || window.location.pathname.startsWith('/join/')) {

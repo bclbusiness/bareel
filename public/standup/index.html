@@ -168,10 +168,6 @@
     #screen-setup .select-wrap { max-width: 260px; }
 
     /* questions */
-    .question-row {
-      display: flex; gap: 8px; align-items: center;
-      margin-bottom: 8px;
-    }
     .question-row input { flex: 1; }
     .btn-remove {
       width: 28px; height: 28px;
@@ -191,6 +187,32 @@
       display: inline-flex; align-items: center; gap: 4px;
     }
     .add-link:hover { text-decoration: underline; }
+
+
+    /* ── DRAG AND DROP ── */
+    .question-row {
+      display: flex; gap: 8px; align-items: center;
+      margin-bottom: 8px;
+      cursor: default;
+    }
+    .question-row.dragging {
+      opacity: 0.4;
+    }
+    .question-row.drag-over {
+      border-top: 2px solid var(--brand-mid);
+    }
+    .drag-handle {
+      color: var(--text-tertiary);
+      cursor: grab;
+      font-size: 16px;
+      flex-shrink: 0;
+      touch-action: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .drag-handle:hover { color: var(--brand); }
+    .drag-handle:active { cursor: grabbing; }
 
     /* ── BUTTONS ── */
     .btn {
@@ -337,6 +359,45 @@
     /* ── SCREEN 1: SETUP ── */
     #screen-setup .container { max-width: 600px; }
 
+
+    /* ── EDIT PANEL ── */
+    .edit-panel {
+      background: var(--bg-card);
+      border: 1px solid #afa9ec;
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: none;
+      animation: slideDown 0.2s ease;
+    }
+    .edit-panel.visible { display: block; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .edit-panel-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--brand-dark); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .edit-panel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 560px) { .edit-panel-grid { grid-template-columns: 1fr; } }
+    .edit-panel-questions { margin-bottom: 16px; }
+    .edit-panel-actions {
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+    .edit-success {
+      font-size: 12px; color: var(--green);
+      display: none; align-items: center; gap: 5px;
+      margin-right: auto;
+    }
+    .edit-success.visible { display: flex; }
+
     /* ── SCREEN 2: WAITING ROOM ── */
     .waiting-grid {
       display: grid;
@@ -472,6 +533,25 @@
     @keyframes pulse {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.06); opacity: 0.85; }
+    }
+
+
+    /* ── YOUR TURN BANNER ── */
+    .your-turn-banner {
+      background: #26215C;
+      color: white;
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      font-size: 15px; font-weight: 600;
+      text-align: center;
+      margin-bottom: 16px;
+      display: none;
+      animation: pulse-banner 1.5s ease-in-out infinite;
+    }
+    .your-turn-banner.visible { display: block; }
+    @keyframes pulse-banner {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
     }
 
     /* ── SCREEN 4: ACTIVE STANDUP ── */
@@ -867,15 +947,18 @@
       <div class="field">
         <label>Questions for each participant</label>
         <div id="questions-container">
-          <div class="question-row">
+          <div class="question-row" draggable="true">
+            <i class="ti ti-grip-vertical drag-handle" aria-hidden="true"></i>
             <input type="text" value="What did you work on yesterday?" placeholder="Enter a question" />
             <button class="btn-remove" onclick="removeQuestion(this)">×</button>
           </div>
-          <div class="question-row">
+          <div class="question-row" draggable="true">
+            <i class="ti ti-grip-vertical drag-handle" aria-hidden="true"></i>
             <input type="text" value="What are you working on today?" placeholder="Enter a question" />
             <button class="btn-remove" onclick="removeQuestion(this)">×</button>
           </div>
-          <div class="question-row">
+          <div class="question-row" draggable="true">
+            <i class="ti ti-grip-vertical drag-handle" aria-hidden="true"></i>
             <input type="text" value="Any blockers?" placeholder="Enter a question" />
             <button class="btn-remove" onclick="removeQuestion(this)">×</button>
           </div>
@@ -891,7 +974,7 @@
     </div>
 
     <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-secondary)">
-      Participants? Send them to <span style="color:var(--brand);font-weight:500">bareel.app</span>
+      Participants? Send them to <span style="color:var(--brand);font-weight:500">bareel.vercel.app/?join</span>
     </p>
   </div>
 </div>
@@ -904,12 +987,63 @@
     <h1 id="waiting-standup-name">Engineering daily Stand Up</h1>
     <p class="subtitle">Share the code and wait for everyone to join, then hit Begin.</p>
 
+    <!-- Edit panel (hidden by default) -->
+    <div class="edit-panel" id="edit-panel">
+      <div class="edit-panel-title">
+        <i class="ti ti-pencil" style="font-size:14px" aria-hidden="true"></i>
+        Edit stand up
+      </div>
+      <div class="edit-panel-grid">
+        <div class="field" style="margin-bottom:0">
+          <label>Stand up name</label>
+          <input type="text" id="edit-name" placeholder="Stand up name" />
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label id="edit-duration-label">Total duration</label>
+          <div class="select-wrap">
+            <select id="edit-duration">
+              <option value="1">1 minute</option>
+              <option value="2">2 minutes</option>
+              <option value="3">3 minutes</option>
+              <option value="4">4 minutes</option>
+              <option value="5">5 minutes</option>
+              <option value="6">6 minutes</option>
+              <option value="7">7 minutes</option>
+              <option value="8">8 minutes</option>
+              <option value="9">9 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="11">11 minutes</option>
+              <option value="12">12 minutes</option>
+              <option value="13">13 minutes</option>
+              <option value="14">14 minutes</option>
+              <option value="15" selected>15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="25">25 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="edit-panel-questions">
+        <label>Questions</label>
+        <div id="edit-questions-container" style="margin-top:6px"></div>
+        <button class="add-link" onclick="addEditQuestion()" style="margin-top:4px">+ Add a question</button>
+      </div>
+      <div class="edit-panel-actions">
+        <span class="edit-success" id="edit-success"><i class="ti ti-check" aria-hidden="true"></i> Saved</span>
+        <button class="btn btn-outline btn-sm" onclick="closeEditPanel()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEditStandup()">Save changes</button>
+      </div>
+    </div>
+
     <div class="waiting-grid">
       <div>
         <div class="code-display">
           <div class="section-label">Share this code to join</div>
           <div class="code-digits" id="waiting-code-digits"></div>
-          <div class="code-url">bareel.app</div>
+          <div class="code-url">bareel.vercel.app/?join</div>
         </div>
         <div class="time-calc" id="waiting-time-calc">
           <span id="waiting-total-label">15 min total</span>
@@ -930,7 +1064,8 @@
 
     <div class="waiting-actions">
       <button class="btn btn-primary" id="btn-begin" onclick="beginStandup()" disabled>Begin stand up</button>
-      <button class="btn btn-outline" id="btn-waiting-status">Waiting for participants...</button>
+      <button class="btn btn-outline" onclick="editStandup()"><i class="ti ti-pencil" style="font-size:14px"></i> Edit stand up</button>
+      <span id="btn-waiting-status" style="font-size:13px;color:var(--text-secondary);align-self:center;">Waiting for participants to join...</span>
     </div>
   </div>
 </div>
@@ -960,7 +1095,7 @@
           Join stand up
         </button>
 
-        <p class="join-url">Visit <span>bareel.app</span> to get here</p>
+        <p class="join-url">Visit <span>bareel.vercel.app/?join</span> to get here</p>
       </div>
     </div>
 
@@ -1043,7 +1178,7 @@
           <div class="admin-section" id="admin-controls">
             <div class="admin-divider">Host only</div>
             <button class="btn-pause" id="btn-pause" onclick="togglePause()">
-              <div class="pause-icon"><div class="pause-bar"></div><div class="pause-bar"></div></div>
+              <i class="ti ti-player-pause" id="pause-icon" style="font-size:14px" aria-hidden="true"></i>
               <span id="pause-label">Pause timer</span>
             </button>
             <div class="admin-only-lbl">Only you can see this</div>
@@ -1216,11 +1351,80 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ── DRAG AND DROP QUESTIONS ──────────────────────────────────────────────
+let dragSrc = null;
+
+function initDragRow(row) {
+  row.addEventListener('dragstart', e => {
+    dragSrc = row;
+    row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  row.addEventListener('dragend', () => {
+    row.classList.remove('dragging');
+    document.querySelectorAll('.question-row').forEach(r => r.classList.remove('drag-over'));
+  });
+  row.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.question-row').forEach(r => r.classList.remove('drag-over'));
+    if (row !== dragSrc) row.classList.add('drag-over');
+  });
+  row.addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragSrc && dragSrc !== row) {
+      const container = document.getElementById('questions-container');
+      const rows = [...container.querySelectorAll('.question-row')];
+      const srcIdx = rows.indexOf(dragSrc);
+      const tgtIdx = rows.indexOf(row);
+      if (srcIdx < tgtIdx) container.insertBefore(dragSrc, row.nextSibling);
+      else container.insertBefore(dragSrc, row);
+    }
+    row.classList.remove('drag-over');
+  });
+
+  // Touch support for mobile
+  let touchStartY = 0;
+  row.addEventListener('touchstart', e => {
+    touchStartY = e.touches[0].clientY;
+    dragSrc = row;
+  }, { passive: true });
+  row.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const targetRow = el ? el.closest('.question-row') : null;
+    document.querySelectorAll('.question-row').forEach(r => r.classList.remove('drag-over'));
+    if (targetRow && targetRow !== dragSrc) targetRow.classList.add('drag-over');
+  }, { passive: false });
+  row.addEventListener('touchend', e => {
+    const touch = e.changedTouches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const targetRow = el ? el.closest('.question-row') : null;
+    if (targetRow && targetRow !== dragSrc) {
+      const container = document.getElementById('questions-container');
+      const rows = [...container.querySelectorAll('.question-row')];
+      const srcIdx = rows.indexOf(dragSrc);
+      const tgtIdx = rows.indexOf(targetRow);
+      if (srcIdx < tgtIdx) container.insertBefore(dragSrc, targetRow.nextSibling);
+      else container.insertBefore(dragSrc, targetRow);
+    }
+    document.querySelectorAll('.question-row').forEach(r => r.classList.remove('drag-over'));
+    dragSrc = null;
+  });
+}
+
+function initAllDragRows() {
+  document.querySelectorAll('.question-row').forEach(row => initDragRow(row));
+}
+
 function addQuestion() {
   const container = document.getElementById('questions-container');
   const row = document.createElement('div');
   row.className = 'question-row';
-  row.innerHTML = `<input type="text" placeholder="Enter a question" /><button class="btn-remove" onclick="removeQuestion(this)">×</button>`;
+  row.setAttribute('draggable', 'true');
+  row.innerHTML = `<i class="ti ti-grip-vertical drag-handle" aria-hidden="true"></i><input type="text" placeholder="Enter a question" /><button class="btn-remove" onclick="removeQuestion(this)">×</button>`;
+  initDragRow(row);
   container.appendChild(row);
   row.querySelector('input').focus();
 }
@@ -1332,6 +1536,7 @@ async function createRoom() {
   state.role = 'admin';
   state.roomId = data.id;
   state.roomCode = code;
+  state.roomName = name;
   state.questions = questions;
   state.totalSeconds = totalSeconds;
   state.timingMode = timingModeValue;
@@ -1343,6 +1548,107 @@ async function createRoom() {
 }
 
 // ── WAITING ROOM ───────────────────────────────────────────────────────────
+function editStandup() {
+  const panel = document.getElementById('edit-panel');
+  if (panel.classList.contains('visible')) {
+    closeEditPanel();
+    return;
+  }
+
+  // pre-fill edit panel with current values
+  document.getElementById('edit-name').value = state.roomName || '';
+
+  // duration field — show per-person or total depending on mode
+  const durLabel = document.getElementById('edit-duration-label');
+  const durSel   = document.getElementById('edit-duration');
+  if (state.timingMode === 'per-person') {
+    durLabel.textContent = 'Time per participant';
+    durSel.value = Math.round((state.fixedPerPersonSeconds || 180) / 60);
+  } else {
+    durLabel.textContent = 'Total duration';
+    durSel.value = Math.round((state.totalSeconds || 900) / 60);
+  }
+
+  // restore questions in edit panel
+  const container = document.getElementById('edit-questions-container');
+  container.innerHTML = '';
+  (state.questions || []).forEach(q => {
+    const row = document.createElement('div');
+    row.className = 'question-row';
+    row.innerHTML = '<input type="text" placeholder="Enter a question" /><button class="btn-remove" onclick="removeQuestion(this)">×</button>';
+    row.querySelector('input').value = q;
+    container.appendChild(row);
+  });
+
+  document.getElementById('edit-success').classList.remove('visible');
+  panel.classList.add('visible');
+}
+
+function closeEditPanel() {
+  document.getElementById('edit-panel').classList.remove('visible');
+}
+
+function addEditQuestion() {
+  const container = document.getElementById('edit-questions-container');
+  const row = document.createElement('div');
+  row.className = 'question-row';
+  row.innerHTML = '<input type="text" placeholder="Enter a question" /><button class="btn-remove" onclick="removeQuestion(this)">×</button>';
+  container.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+async function saveEditStandup() {
+  const name = document.getElementById('edit-name').value.trim();
+  if (!name) return;
+
+  // gather updated questions
+  const questions = [];
+  document.querySelectorAll('#edit-questions-container .question-row input').forEach(inp => {
+    if (inp.value.trim()) questions.push(inp.value.trim());
+  });
+  if (questions.length === 0) return;
+
+  // duration
+  const durVal = parseInt(document.getElementById('edit-duration').value);
+  let totalSeconds = state.totalSeconds;
+  let perPersonSeconds = state.fixedPerPersonSeconds;
+  if (state.timingMode === 'per-person') {
+    perPersonSeconds = durVal * 60;
+  } else {
+    totalSeconds = durVal * 60;
+  }
+
+  // update Supabase
+  const { error } = await db.from('rooms').update({
+    name,
+    questions,
+    total_seconds: totalSeconds,
+    per_person_seconds: perPersonSeconds,
+  }).eq('id', state.roomId);
+
+  if (error) { console.error(error); return; }
+
+  // update local state
+  state.roomName = name;
+  state.questions = questions;
+  state.totalSeconds = totalSeconds;
+  state.fixedPerPersonSeconds = perPersonSeconds;
+
+  // refresh waiting room display
+  document.getElementById('waiting-standup-name').textContent = name;
+  const totalMins = Math.round(totalSeconds / 60);
+  document.getElementById('waiting-total-label').textContent = `${totalMins} min total`;
+  updateWaitingParticipants(state.participants);
+
+  // show saved confirmation
+  const successEl = document.getElementById('edit-success');
+  successEl.classList.add('visible');
+  setTimeout(() => {
+    successEl.classList.remove('visible');
+    closeEditPanel();
+  }, 1500);
+}
+
 function showWaitingRoom(roomData) {
   document.getElementById('waiting-standup-name').textContent = roomData.name;
   document.getElementById('topbar-badge').textContent = 'Host';
@@ -1378,7 +1684,7 @@ function updateWaitingParticipants(participants) {
     if (changed) list.innerHTML = '<p style="font-size:13px;color:var(--text-tertiary);padding:8px 0">Waiting for participants...</p>';
     perEl.textContent = '— per person';
     btn.disabled = true;
-    statusBtn.textContent = 'Waiting for participants...';
+    statusBtn.textContent = 'Waiting for participants to join...';
     return;
   }
 
@@ -1404,7 +1710,7 @@ function updateWaitingParticipants(participants) {
   }
 
   btn.disabled = false;
-  statusBtn.textContent = `${participants.length} participant${participants.length !== 1 ? 's' : ''} ready`;
+  statusBtn.textContent = `${participants.length} participant${participants.length !== 1 ? 's' : ''} have joined`;
 }
 
 // ── PARTICIPANT JOIN ────────────────────────────────────────────────────────
@@ -1597,6 +1903,10 @@ function updateActiveSpeaker(room) {
   const isCurrentSpeaker = state.participantName && speaker === state.participantName;
   const canSeeNext = state.role === 'admin' || isCurrentSpeaker;
   document.getElementById('btn-next-person').style.display = canSeeNext ? 'block' : 'none';
+  // change button text for last speaker
+  const isLastSpeaker = state.currentIndex >= state.speakerOrder.length - 1;
+  const nextBtn = document.getElementById('btn-next-person');
+  if (nextBtn) nextBtn.textContent = isLastSpeaker ? 'Finish stand up' : 'Next person';
   const lbl = document.getElementById('btn-next-lbl');
   if (lbl) lbl.textContent = state.role === 'admin' ? 'Visible to admin & current speaker' : isCurrentSpeaker ? "It's your turn — press when done" : '';
 
@@ -1615,7 +1925,10 @@ function updateActiveSpeaker(room) {
   // paused banner
   document.getElementById('paused-banner').classList.toggle('visible', state.isPaused);
   const pauseLabel = document.getElementById('pause-label');
+  const pauseIcon  = document.getElementById('pause-icon');
   if (pauseLabel) pauseLabel.textContent = state.isPaused ? 'Resume timer' : 'Pause timer';
+  if (pauseIcon) pauseIcon.className = state.isPaused ? 'ti ti-player-play' : 'ti ti-player-pause';
+  if (pauseIcon) pauseIcon.style.fontSize = '14px';
 }
 
 function startLocalTimer(room) {
@@ -1947,7 +2260,7 @@ function initOnboarding() {
   const overlay = document.getElementById('onboarding-overlay');
   if (!overlay) return;
   // only show on admin/host setup screen
-  if (window.location.search.includes('join') || window.location.pathname.includes('join')) {
+  if (window.location.search.includes('join') || window.location.pathname.includes('join') || window.location.pathname === '/join' || window.location.pathname.startsWith('/join/')) {
     overlay.style.display = 'none';
     return;
   }
@@ -1969,9 +2282,10 @@ function closeOnboarding() {
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
   initOnboarding();
+  initAllDragRows();
 
   // If URL contains ?join, show join screen for participants
-  if (window.location.search.includes('join') || window.location.pathname.includes('join')) {
+  if (window.location.search.includes('join') || window.location.pathname.includes('join') || window.location.pathname === '/join' || window.location.pathname.startsWith('/join/')) {
     state.role = 'participant';
     showScreen('screen-join');
   } else {
@@ -2022,7 +2336,9 @@ function loadSavedSettings() {
       saved.questions.forEach(q => {
         const row = document.createElement('div');
         row.className = 'question-row';
-        row.innerHTML = '<input type="text" placeholder="Enter a question" /><button class="btn-remove" onclick="removeQuestion(this)">×</button>';
+        row.setAttribute('draggable', 'true');
+        row.innerHTML = '<i class="ti ti-grip-vertical drag-handle" aria-hidden="true"></i><input type="text" placeholder="Enter a question" /><button class="btn-remove" onclick="removeQuestion(this)">×</button>';
+        initDragRow(row);
         row.querySelector('input').value = q;
         container.appendChild(row);
       });

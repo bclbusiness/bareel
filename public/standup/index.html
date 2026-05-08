@@ -993,44 +993,100 @@
         <i class="ti ti-pencil" style="font-size:14px" aria-hidden="true"></i>
         Edit stand up
       </div>
-      <div class="edit-panel-grid">
-        <div class="field" style="margin-bottom:0">
-          <label>Stand up name</label>
-          <input type="text" id="edit-name" placeholder="Stand up name" />
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label id="edit-duration-label">Total duration</label>
-          <div class="select-wrap">
-            <select id="edit-duration">
-              <option value="1">1 minute</option>
-              <option value="2">2 minutes</option>
-              <option value="3">3 minutes</option>
-              <option value="4">4 minutes</option>
-              <option value="5">5 minutes</option>
-              <option value="6">6 minutes</option>
-              <option value="7">7 minutes</option>
-              <option value="8">8 minutes</option>
-              <option value="9">9 minutes</option>
-              <option value="10">10 minutes</option>
-              <option value="11">11 minutes</option>
-              <option value="12">12 minutes</option>
-              <option value="13">13 minutes</option>
-              <option value="14">14 minutes</option>
-              <option value="15" selected>15 minutes</option>
-              <option value="20">20 minutes</option>
-              <option value="25">25 minutes</option>
-              <option value="30">30 minutes</option>
-              <option value="45">45 minutes</option>
-              <option value="60">60 minutes</option>
-            </select>
+
+      <!-- Row 1: Name -->
+      <div class="field" style="margin-bottom:16px">
+        <label>Stand up name</label>
+        <input type="text" id="edit-name" placeholder="Stand up name" />
+      </div>
+
+      <!-- Row 2: Timing mode -->
+      <div class="field" style="margin-bottom:16px">
+        <label>Timing mode</label>
+        <div class="radio-group">
+          <div class="radio-option selected" id="edit-radio-total" onclick="setEditTimingMode('total')">
+            <div class="radio-dot"></div>
+            <div>
+              <span class="radio-label">Set total stand up time</span>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Total time is divided amongst number of participants.</div>
+            </div>
+          </div>
+          <div class="radio-option" id="edit-radio-per-person" onclick="setEditTimingMode('per-person')">
+            <div class="radio-dot"></div>
+            <div>
+              <span class="radio-label">Set time per participant</span>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Each participant is given the specified amount of time.</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="edit-panel-questions">
+
+      <!-- Row 3: Duration (changes based on timing mode) -->
+      <div class="field" style="margin-bottom:16px" id="edit-field-total">
+        <label>Total stand up duration</label>
+        <div class="select-wrap" style="max-width:260px">
+          <select id="edit-duration-total">
+            <option value="1">1 minute</option><option value="2">2 minutes</option>
+            <option value="3">3 minutes</option><option value="4">4 minutes</option>
+            <option value="5">5 minutes</option><option value="6">6 minutes</option>
+            <option value="7">7 minutes</option><option value="8">8 minutes</option>
+            <option value="9">9 minutes</option><option value="10">10 minutes</option>
+            <option value="11">11 minutes</option><option value="12">12 minutes</option>
+            <option value="13">13 minutes</option><option value="14">14 minutes</option>
+            <option value="15" selected>15 minutes</option><option value="16">16 minutes</option>
+            <option value="17">17 minutes</option><option value="18">18 minutes</option>
+            <option value="19">19 minutes</option><option value="20">20 minutes</option>
+            <option value="21">21 minutes</option><option value="22">22 minutes</option>
+            <option value="23">23 minutes</option><option value="24">24 minutes</option>
+            <option value="25">25 minutes</option><option value="26">26 minutes</option>
+            <option value="27">27 minutes</option><option value="28">28 minutes</option>
+            <option value="29">29 minutes</option><option value="30">30 minutes</option>
+            <option value="35">35 minutes</option><option value="40">40 minutes</option>
+            <option value="45">45 minutes</option><option value="50">50 minutes</option>
+            <option value="55">55 minutes</option><option value="60">60 minutes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field hidden" style="margin-bottom:16px" id="edit-field-per-person">
+        <label>Time per participant</label>
+        <div class="select-wrap" style="max-width:260px">
+          <select id="edit-duration-per-person">
+            <option value="1">1 minute</option><option value="2">2 minutes</option>
+            <option value="3" selected>3 minutes</option><option value="4">4 minutes</option>
+            <option value="5">5 minutes</option><option value="6">6 minutes</option>
+            <option value="7">7 minutes</option><option value="8">8 minutes</option>
+            <option value="9">9 minutes</option><option value="10">10 minutes</option>
+            <option value="11">11 minutes</option><option value="12">12 minutes</option>
+            <option value="13">13 minutes</option><option value="14">14 minutes</option>
+            <option value="15">15 minutes</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 4: Host participation -->
+      <div class="field" style="margin-bottom:16px">
+        <label>Host participation</label>
+        <label for="edit-host-participating" style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer">
+          <input type="checkbox" id="edit-host-participating" style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;flex-shrink:0" />
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">I am participating in this stand up</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">You'll be added to the speaker queue along with everyone else</div>
+          </div>
+        </label>
+        <div class="field hidden" id="edit-host-name-field" style="margin-top:10px;margin-bottom:0">
+          <label>Host name</label>
+          <input type="text" id="edit-host-name" placeholder="Your name" />
+        </div>
+      </div>
+
+      <!-- Row 5: Questions -->
+      <div class="field" style="margin-bottom:16px">
         <label>Questions</label>
         <div id="edit-questions-container" style="margin-top:6px"></div>
         <button class="add-link" onclick="addEditQuestion()" style="margin-top:4px">+ Add a question</button>
       </div>
+
       <div class="edit-panel-actions">
         <span class="edit-success" id="edit-success"><i class="ti ti-check" aria-hidden="true"></i> Saved</span>
         <button class="btn btn-outline btn-sm" onclick="closeEditPanel()">Cancel</button>
@@ -1548,6 +1604,13 @@ async function createRoom() {
 }
 
 // ── WAITING ROOM ───────────────────────────────────────────────────────────
+function setEditTimingMode(mode) {
+  document.getElementById('edit-radio-total').classList.toggle('selected', mode === 'total');
+  document.getElementById('edit-radio-per-person').classList.toggle('selected', mode === 'per-person');
+  document.getElementById('edit-field-total').classList.toggle('hidden', mode !== 'total');
+  document.getElementById('edit-field-per-person').classList.toggle('hidden', mode !== 'per-person');
+}
+
 function editStandup() {
   const panel = document.getElementById('edit-panel');
   if (panel.classList.contains('visible')) {
@@ -1558,16 +1621,26 @@ function editStandup() {
   // pre-fill edit panel with current values
   document.getElementById('edit-name').value = state.roomName || '';
 
-  // duration field — show per-person or total depending on mode
-  const durLabel = document.getElementById('edit-duration-label');
-  const durSel   = document.getElementById('edit-duration');
+  // timing mode
+  setEditTimingMode(state.timingMode || 'total');
   if (state.timingMode === 'per-person') {
-    durLabel.textContent = 'Time per participant';
-    durSel.value = Math.round((state.fixedPerPersonSeconds || 180) / 60);
+    document.getElementById('edit-duration-per-person').value = Math.round((state.fixedPerPersonSeconds || 180) / 60);
   } else {
-    durLabel.textContent = 'Total duration';
-    durSel.value = Math.round((state.totalSeconds || 900) / 60);
+    document.getElementById('edit-duration-total').value = Math.round((state.totalSeconds || 900) / 60);
   }
+
+  // host participation
+  const editHostCb = document.getElementById('edit-host-participating');
+  const editHostNameField = document.getElementById('edit-host-name-field');
+  const editHostNameInput = document.getElementById('edit-host-name');
+  const isHostInQueue = state.participantName && state.participants.includes(state.participantName);
+  editHostCb.checked = !!isHostInQueue;
+  editHostNameField.classList.toggle('hidden', !isHostInQueue);
+  if (isHostInQueue) editHostNameInput.value = state.participantName || '';
+  editHostCb.addEventListener('change', () => {
+    editHostNameField.classList.toggle('hidden', !editHostCb.checked);
+    if (editHostCb.checked) editHostNameInput.focus();
+  });
 
   // restore questions in edit panel
   const container = document.getElementById('edit-questions-container');
@@ -1608,14 +1681,31 @@ async function saveEditStandup() {
   });
   if (questions.length === 0) return;
 
-  // duration
-  const durVal = parseInt(document.getElementById('edit-duration').value);
+  // timing mode
+  const editMode = document.getElementById('edit-radio-per-person').classList.contains('selected') ? 'per-person' : 'total';
   let totalSeconds = state.totalSeconds;
   let perPersonSeconds = state.fixedPerPersonSeconds;
-  if (state.timingMode === 'per-person') {
-    perPersonSeconds = durVal * 60;
+  if (editMode === 'per-person') {
+    perPersonSeconds = parseInt(document.getElementById('edit-duration-per-person').value) * 60;
+    totalSeconds = null;
   } else {
-    totalSeconds = durVal * 60;
+    totalSeconds = parseInt(document.getElementById('edit-duration-total').value) * 60;
+    perPersonSeconds = null;
+  }
+
+  // host participation
+  const editHostCb = document.getElementById('edit-host-participating');
+  const editHostName = document.getElementById('edit-host-name').value.trim();
+  let updatedParticipants = [...(state.participants || [])];
+  // remove old host name if present
+  if (state.participantName) {
+    updatedParticipants = updatedParticipants.filter(p => p !== state.participantName);
+  }
+  if (editHostCb.checked && editHostName) {
+    if (!updatedParticipants.includes(editHostName)) updatedParticipants.unshift(editHostName);
+    state.participantName = editHostName;
+  } else {
+    state.participantName = null;
   }
 
   // update Supabase
@@ -1624,6 +1714,8 @@ async function saveEditStandup() {
     questions,
     total_seconds: totalSeconds,
     per_person_seconds: perPersonSeconds,
+    timing_mode: editMode,
+    participants: updatedParticipants,
   }).eq('id', state.roomId);
 
   if (error) { console.error(error); return; }
@@ -1633,6 +1725,8 @@ async function saveEditStandup() {
   state.questions = questions;
   state.totalSeconds = totalSeconds;
   state.fixedPerPersonSeconds = perPersonSeconds;
+  state.timingMode = editMode;
+  state.participants = updatedParticipants;
 
   // refresh waiting room display
   document.getElementById('waiting-standup-name').textContent = name;

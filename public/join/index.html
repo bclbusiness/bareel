@@ -263,28 +263,45 @@ async function findRoom() {
   btn.innerHTML = '<div class="spinner"></div>';
   btn.disabled = true;
 
-  const { data: room, error } = await db
+  // check rooms table first (standup etc), then qa_sessions
+  let toolType = null;
+
+  const { data: room } = await db
     .from('rooms')
     .select('tool_type, status')
     .eq('code', code)
     .single();
 
+  if (room) {
+    if (room.status === 'complete') {
+      btn.innerHTML = 'Find session';
+      btn.disabled = false;
+      errEl.textContent = 'This session has already finished.';
+      errEl.classList.add('visible');
+      return;
+    }
+    toolType = room.tool_type || 'standup';
+  } else {
+    // try qa_sessions table
+    const { data: qaSession } = await db
+      .from('qa_sessions')
+      .select('tool_type')
+      .eq('code', code)
+      .single();
+
+    if (qaSession) {
+      toolType = qaSession.tool_type || 'qa';
+    }
+  }
+
   btn.innerHTML = 'Find session';
   btn.disabled = false;
 
-  if (error || !room) {
+  if (!toolType) {
     errEl.textContent = 'Room not found. Check the code and try again.';
     errEl.classList.add('visible');
     return;
   }
-
-  if (room.status === 'complete') {
-    errEl.textContent = 'This session has already finished.';
-    errEl.classList.add('visible');
-    return;
-  }
-
-  const toolType = room.tool_type || 'standup';
   const path = TOOL_PATHS[toolType];
 
   if (!path) {

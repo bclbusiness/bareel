@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Join — Bareel</title>
+  <title>Bareel Q&A</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -15,6 +16,8 @@
       --brand-light: #EEEDFE;
       --brand-dark: #26215C;
       --brand-mid: #7F77DD;
+      --green: #1D9E75;
+      --green-light: #E1F5EE;
       --red: #C0392B;
       --text-primary: #1a1a2e;
       --text-secondary: #6b6b8a;
@@ -22,8 +25,11 @@
       --bg: #f7f7fc;
       --bg-card: #ffffff;
       --border: #e4e4f0;
+      --border-light: #f0f0f8;
+      --radius: 12px;
       --radius-sm: 8px;
       --radius-lg: 16px;
+      --shadow: 0 2px 16px rgba(83,74,183,0.08);
       --shadow-lg: 0 8px 40px rgba(83,74,183,0.14);
     }
 
@@ -32,8 +38,6 @@
       background: var(--bg);
       color: var(--text-primary);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -46,6 +50,9 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .logo {
       width: 32px; height: 32px;
@@ -53,17 +60,128 @@
       border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; font-weight: 600; color: white;
-      text-decoration: none; flex-shrink: 0;
+      flex-shrink: 0;
+      text-decoration: none;
     }
-    .brand-name { font-size: 15px; font-weight: 600; color: var(--text-primary); text-decoration: none; }
+    .brand-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .brand-sub  { font-size: 13px; color: var(--text-secondary); margin-left: 2px; }
+    .badge {
+      font-size: 11px; font-weight: 500;
+      padding: 3px 10px; border-radius: 20px;
+      background: var(--brand-light); color: var(--brand-dark);
+      margin-left: auto;
+    }
+    .live-indicator {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--green);
+      margin-left: auto;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%; background: var(--green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
 
-    /* ── BODY ── */
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+    #screen-join { min-height: calc(100vh - 56px); flex-direction: column; }
+    #screen-join.active { display: flex; }
+
+    /* ── CONTAINERS ── */
+    .container { max-width: 640px; margin: 0 auto; padding: 32px 20px; }
+
+    /* ── TYPOGRAPHY ── */
+    h1 { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.6px;
+      color: var(--text-tertiary); text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-primary);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--brand-mid);
+      box-shadow: 0 0 0 3px rgba(127,119,221,0.15);
+    }
+    textarea { resize: none; line-height: 1.5; }
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--brand); color: white; box-shadow: 0 2px 8px rgba(83,74,183,0.3); }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-outline { background: none; color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--brand-mid); color: var(--brand); }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 7px 14px; font-size: 13px; }
+
+    /* ── ERROR ── */
+    .error-msg {
+      font-size: 13px; color: var(--red);
+      background: #fee8e8; border-radius: var(--radius-sm);
+      padding: 8px 12px; margin-top: 8px; display: none;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── SPINNER ── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── JOIN SCREEN ── */
     .join-body {
       flex: 1;
       display: flex; align-items: center; justify-content: center;
       padding: 32px 20px;
     }
-
     .join-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -73,37 +191,9 @@
       box-shadow: var(--shadow-lg);
       text-align: center;
     }
-
-    .join-logo {
-      width: 48px; height: 48px;
-      background: var(--brand);
-      border-radius: 13px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; font-weight: 600; color: white;
-      margin: 0 auto 16px;
-    }
-
-    h1 {
-      font-size: 20px; font-weight: 600;
-      color: var(--text-primary); margin-bottom: 6px;
-    }
-    .subtitle {
-      font-size: 14px; color: var(--text-secondary);
-      margin-bottom: 28px; line-height: 1.5;
-    }
-
-    .field { margin-bottom: 20px; text-align: left; }
-    label {
-      display: block;
-      font-size: 12px; font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-    }
-
-    /* Code inputs */
-    .code-inputs {
-      display: flex; gap: 8px; justify-content: center;
-    }
+    .join-card h1 { text-align: center; margin-bottom: 6px; }
+    .join-card .subtitle { text-align: center; }
+    .code-inputs { display: flex; gap: 8px; justify-content: center; }
     .code-input-box {
       width: 44px; height: 54px;
       border: 1.5px solid var(--border);
@@ -122,79 +212,237 @@
       background: var(--brand-light);
     }
 
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 12px 24px;
+    /* ── SESSION HEADER ── */
+    .session-header {
+      margin-bottom: 24px;
+    }
+    .session-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .session-welcome { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+    .session-meta {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .code-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px; font-weight: 500;
+      background: var(--brand-light);
+      border: 1px solid #cccaf5;
+      color: var(--brand-dark);
       border-radius: var(--radius-sm);
-      font-size: 14px; font-weight: 500;
+      padding: 4px 12px;
+      letter-spacing: 2px;
+    }
+    .participant-count {
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .export-btn {
+      margin-left: auto;
+      font-size: 12px; color: var(--text-secondary);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
       font-family: 'DM Sans', sans-serif;
-      cursor: pointer; border: none;
       transition: all 0.15s;
-      width: 100%;
     }
-    .btn-primary {
-      background: var(--brand); color: white;
-      box-shadow: 0 2px 8px rgba(83,74,183,0.3);
-    }
-    .btn-primary:hover { background: var(--brand-dark); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .export-btn:hover { border-color: var(--brand-mid); color: var(--brand); }
 
-    .error-msg {
-      font-size: 13px; color: var(--red);
-      background: #fee8e8; border-radius: var(--radius-sm);
-      padding: 8px 12px; margin-bottom: 12px;
-      display: none; text-align: left;
+    /* ── SUBMIT BOX ── */
+    .submit-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
     }
-    .error-msg.visible { display: block; }
+    .submit-box textarea {
+      margin-bottom: 10px;
+      height: 72px;
+    }
+    .submit-row {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .char-count { font-size: 12px; color: var(--text-tertiary); }
+    .char-count.over { color: var(--red); }
 
-    .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+    /* ── QUESTIONS LIST ── */
+    .questions-list {
+      display: flex; flex-direction: column; gap: 10px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .q-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      display: flex; gap: 12px;
+      align-items: flex-start;
+      transition: border-color 0.15s;
+      animation: fadeUp 0.25s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .q-card.top-question {
+      border-color: #afa9ec;
+      background: var(--brand-light);
+    }
+    .upvote-col {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 3px; flex-shrink: 0;
+    }
+    .upvote-btn {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .upvote-btn:hover { border-color: var(--brand-mid); background: var(--brand-light); }
+    .upvote-btn.voted {
+      background: var(--brand-light);
+      border-color: #afa9ec;
+    }
+    .upvote-btn i { font-size: 16px; color: var(--text-secondary); transition: color 0.15s; }
+    .upvote-btn.voted i { color: var(--brand); }
+    .upvote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .upvote-count {
+      font-size: 13px; font-weight: 600; color: var(--text-secondary);
+      min-width: 34px; text-align: center;
+    }
+    .upvote-btn.voted ~ .upvote-count { color: var(--brand); }
+    .q-body { flex: 1; }
+    .q-text {
+      font-size: 14px; color: var(--text-primary);
+      line-height: 1.5; margin-bottom: 5px;
+    }
+    .top-question .q-text { color: var(--brand-dark); }
+    .q-meta { font-size: 12px; color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; }
+    .top-question .q-meta { color: var(--brand-mid); }
+    .top-badge {
+      font-size: 10px; font-weight: 600;
+      background: var(--brand);
+      color: white;
+      padding: 2px 7px; border-radius: 20px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-tertiary);
+      font-size: 14px;
+    }
+    .empty-state i { font-size: 32px; display: block; margin-bottom: 10px; }
 
-    .join-footer {
-      font-size: 12px; color: var(--text-tertiary);
-      margin-top: 24px;
-    }
-    .join-footer span { color: var(--brand); }
+    /* ── HIDDEN ── */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
 <header class="topbar">
-  <a href="/?join" class="logo">B</a>
-  <a href="/?join" class="brand-name">Bareel</a>
+  <a id="topbar-logo-link" href="/" class="logo" style="text-decoration:none">B</a>
+  <span class="brand-name">Bareel</span>
+  <span class="brand-sub">Q&A</span>
+  <span class="badge hidden" id="topbar-badge">Host</span>
+  <div class="live-indicator hidden" id="topbar-live">
+    <div class="live-dot"></div>
+    <span id="topbar-participant-count">0 participants</span>
+  </div>
 </header>
 
-<main class="join-body">
-  <div class="join-card">
-    <div class="join-logo">B</div>
-    <h1>Join a session</h1>
-    <p class="subtitle">Enter the 6-digit code shared by your host.</p>
+<!-- ═══════════════════════════════════════════
+     SCREEN 1 — HOST SETUP
+════════════════════════════════════════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="container">
+    <h1>Create a Q&amp;A session</h1>
+    <p class="subtitle">Set up your session and share the code — your audience can ask questions anonymously.</p>
+    <div class="card">
+      <div class="field">
+        <label>Session name</label>
+        <input type="text" id="session-name" placeholder="e.g. Product roadmap Q&A" />
+      </div>
+      <div class="field">
+        <label>Welcome message <span style="color:var(--text-tertiary);font-weight:400">(optional)</span></label>
+        <input type="text" id="session-welcome" placeholder="e.g. Ask us anything about the roadmap!" />
+      </div>
+      <div class="error-msg" id="setup-error"></div>
+      <hr class="divider" />
+      <button class="btn btn-primary btn-full" id="btn-create" onclick="createSession()">
+        Create Q&amp;A session
+      </button>
+    </div>
+  </div>
+</div>
 
-    <div class="field">
-      <label>Session code</label>
-      <div class="code-inputs" id="code-input-boxes"></div>
+<!-- ═══════════════════════════════════════════
+     SCREEN 2 — ACTIVE SESSION (host + participant)
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-active">
+  <div class="container">
+    <div class="session-header">
+      <div class="session-title" id="active-session-name"></div>
+      <div class="session-welcome" id="active-session-welcome"></div>
+      <div class="session-meta">
+        <span class="code-pill" id="active-code-pill"></span>
+        <span class="participant-count" id="active-participant-count"></span>
+        <button class="export-btn hidden" id="btn-export" onclick="exportCSV()">
+          <i class="ti ti-download" aria-hidden="true"></i> Export CSV
+        </button>
+      </div>
     </div>
 
-    <div class="error-msg" id="join-error"></div>
+    <!-- Submit box — participants only -->
+    <div class="submit-box hidden" id="submit-box">
+      <label style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;display:block">Ask a question anonymously</label>
+      <textarea id="question-input" placeholder="Type your question here..." maxlength="200"></textarea>
+      <div class="submit-row">
+        <span class="char-count" id="char-count">0 / 200</span>
+        <button class="btn btn-primary btn-sm" id="btn-submit" onclick="submitQuestion()">
+          Submit question
+        </button>
+      </div>
+    </div>
 
-    <button class="btn btn-primary" id="btn-find" onclick="findRoom()">
-      Find session
-    </button>
-
-    <p class="join-footer">Joining from <span>bareel.app</span></p>
+    <div class="section-label" id="questions-label">Questions (0)</div>
+    <div class="questions-list" id="questions-list">
+      <div class="empty-state">
+        <i class="ti ti-message-question" aria-hidden="true"></i>
+        No questions yet — be the first to ask!
+      </div>
+    </div>
   </div>
-</main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3 — JOIN (participant entry)
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-join">
+  <div class="join-body">
+    <div class="join-card">
+      <h1>Join a Q&amp;A</h1>
+      <p class="subtitle">Enter the 6-digit code from your host.</p>
+      <div class="field" style="margin-bottom:20px">
+        <label style="text-align:left;display:block;margin-bottom:6px">Session code</label>
+        <div class="code-inputs" id="code-input-boxes"></div>
+      </div>
+      <div class="error-msg" id="join-error"></div>
+      <button class="btn btn-primary btn-full" id="btn-join" onclick="joinSession()">
+        Join Q&amp;A
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://usrvxlmmepkuhneubxbm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcnZ4bG1tZXBrdWhuZXVieGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjIwMjgsImV4cCI6MjA5MzYzODAyOH0.x6bzlk_PIIq9jYsjmmuKblMlC2iK-scjAlHLZwv0tRE';
 // ─────────────────────────────────────────────────────────────────────────
 
 const { createClient } = supabase;
@@ -202,19 +450,298 @@ let db;
 try {
   if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
     db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.warn('Bareel Q&A: Add your Supabase credentials.');
   }
-} catch(e) { console.warn('Bareel: Supabase init failed', e); }
+} catch(e) { console.warn('Bareel Q&A: Supabase init failed', e); }
 
-// Tool type → path mapping
-// Add new tools here as they are built
-const TOOL_PATHS = {
-  'standup': '/standup/',
-  'qa': '/qa/',
+// ── STATE ─────────────────────────────────────────────────────────────────
+let state = {
+  role: null,
+  sessionId: null,
+  sessionCode: null,
+  participantId: null,
+  questions: [],
+  votedIds: new Set(),
+  subscription: null,
+  pollInterval: null,
 };
 
-// Build 6-digit code input boxes
+// ── SCREEN ROUTER ─────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const badge  = document.getElementById('topbar-badge');
+  const liveEl = document.getElementById('topbar-live');
+  const logo   = document.getElementById('topbar-logo-link');
+  badge.classList.add('hidden');
+  liveEl.classList.add('hidden');
+  if (id === 'screen-active') {
+    if (state.role === 'host') {
+      badge.classList.remove('hidden');
+      logo.href = '/';
+    } else {
+      logo.href = '/?join';
+    }
+    liveEl.classList.remove('hidden');
+  }
+  if (id === 'screen-join') logo.href = '/?join';
+  if (id === 'screen-setup') logo.href = '/';
+}
+
+// ── GENERATE CODE ─────────────────────────────────────────────────────────
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// ── CREATE SESSION ────────────────────────────────────────────────────────
+async function createSession() {
+  const btn    = document.getElementById('btn-create');
+  const errEl  = document.getElementById('setup-error');
+  errEl.classList.remove('visible');
+
+  if (!db) { showError('setup-error', 'Supabase not configured.'); return; }
+
+  const name    = document.getElementById('session-name').value.trim();
+  const welcome = document.getElementById('session-welcome').value.trim();
+  if (!name) { showError('setup-error', 'Please enter a session name.'); return; }
+
+  btn.innerHTML = '<div class="spinner"></div> Creating...';
+  btn.disabled = true;
+
+  const code = generateCode();
+
+  const { data, error } = await db.from('qa_sessions').insert({
+    code,
+    name,
+    welcome_message: welcome,
+    tool_type: 'qa',
+    participant_count: 0,
+  }).select().single();
+
+  btn.innerHTML = 'Create Q&amp;A session';
+  btn.disabled = false;
+
+  if (error) { showError('setup-error', 'Could not create session. Check your Supabase config.'); console.error(error); return; }
+
+  state.role      = 'host';
+  state.sessionId = data.id;
+  state.sessionCode = code;
+
+  renderActiveScreen(data, []);
+  subscribeToSession(data.id);
+}
+
+// ── JOIN SESSION ──────────────────────────────────────────────────────────
+async function joinSession() {
+  const btn   = document.getElementById('btn-join');
+  const errEl = document.getElementById('join-error');
+  errEl.classList.remove('visible');
+
+  if (!db) { showError('join-error', 'Service not available.'); return; }
+
+  const boxes = document.querySelectorAll('.code-input-box');
+  const code  = Array.from(boxes).map(b => b.value).join('');
+  if (code.length < 6) { showError('join-error', 'Please enter the full 6-digit code.'); return; }
+
+  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+
+  const { data: session, error } = await db.from('qa_sessions').select('*').eq('code', code).single();
+
+  btn.innerHTML = 'Join Q&amp;A';
+  btn.disabled = false;
+
+  if (error || !session) { showError('join-error', 'Session not found. Check the code and try again.'); return; }
+
+  // increment participant count
+  await db.from('qa_sessions').update({ participant_count: (session.participant_count || 0) + 1 }).eq('id', session.id);
+
+  state.role      = 'participant';
+  state.sessionId = session.id;
+  state.sessionCode = code;
+  state.participantId = 'anon_' + Math.random().toString(36).slice(2, 9);
+
+  // load existing questions
+  const { data: questions } = await db.from('qa_questions').select('*').eq('session_id', session.id).order('votes', { ascending: false });
+
+  renderActiveScreen(session, questions || []);
+  subscribeToSession(session.id);
+}
+
+// ── RENDER ACTIVE SCREEN ──────────────────────────────────────────────────
+function renderActiveScreen(session, questions) {
+  document.getElementById('active-session-name').textContent = session.name;
+  document.getElementById('active-session-welcome').textContent = session.welcome_message || '';
+  document.getElementById('active-session-welcome').style.display = session.welcome_message ? 'block' : 'none';
+  document.getElementById('active-code-pill').textContent = state.sessionCode;
+
+  // host-only controls
+  const exportBtn = document.getElementById('btn-export');
+  const submitBox = document.getElementById('submit-box');
+  if (state.role === 'host') {
+    exportBtn.classList.remove('hidden');
+    submitBox.classList.add('hidden');
+  } else {
+    exportBtn.classList.add('hidden');
+    submitBox.classList.remove('hidden');
+  }
+
+  state.questions = questions || [];
+  renderQuestions();
+  updateParticipantCount(session.participant_count || 0);
+  showScreen('screen-active');
+}
+
+// ── RENDER QUESTIONS ──────────────────────────────────────────────────────
+function renderQuestions() {
+  const list  = document.getElementById('questions-list');
+  const label = document.getElementById('questions-label');
+  const qs    = [...state.questions].sort((a, b) => b.votes - a.votes);
+
+  label.textContent = `Questions (${qs.length})`;
+
+  if (qs.length === 0) {
+    list.innerHTML = `<div class="empty-state"><i class="ti ti-message-question" aria-hidden="true"></i>No questions yet — be the first to ask!</div>`;
+    return;
+  }
+
+  const maxVotes = qs[0]?.votes || 0;
+  list.innerHTML = qs.map((q, i) => {
+    const isTop    = i === 0 && maxVotes > 0;
+    const hasVoted = state.votedIds.has(q.id);
+    const isOwn    = q.participant_id === state.participantId;
+    const canVote  = state.role === 'participant' && !isOwn;
+    return `
+      <div class="q-card${isTop ? ' top-question' : ''}">
+        <div class="upvote-col">
+          <button class="upvote-btn${hasVoted ? ' voted' : ''}"
+            onclick="upvote('${q.id}')"
+            ${!canVote ? 'disabled' : ''}
+            aria-label="Upvote this question">
+            <i class="ti ti-chevron-up" aria-hidden="true"></i>
+          </button>
+          <span class="upvote-count">${q.votes}</span>
+        </div>
+        <div class="q-body">
+          <div class="q-text">${escapeHtml(q.text)}${isTop ? ' <span class="top-badge">Top</span>' : ''}</div>
+          <div class="q-meta">
+            <span>Anonymous</span>
+            <span>·</span>
+            <span>${timeAgo(q.created_at)}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── SUBMIT QUESTION ───────────────────────────────────────────────────────
+async function submitQuestion() {
+  const btn   = document.getElementById('btn-submit');
+  const input = document.getElementById('question-input');
+  const text  = input.value.trim();
+
+  if (!text) return;
+  if (text.length > 200) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
+
+  const { data, error } = await db.from('qa_questions').insert({
+    session_id: state.sessionId,
+    text,
+    votes: 0,
+    participant_id: state.participantId,
+  }).select().single();
+
+  btn.disabled = false;
+  btn.innerHTML = 'Submit question';
+
+  if (error) { console.error(error); return; }
+
+  input.value = '';
+  document.getElementById('char-count').textContent = '0 / 200';
+
+  // add to local state immediately
+  state.questions.push(data);
+  renderQuestions();
+}
+
+// ── UPVOTE ────────────────────────────────────────────────────────────────
+async function upvote(questionId) {
+  if (state.votedIds.has(questionId)) return;
+  state.votedIds.add(questionId);
+
+  // optimistic update
+  const q = state.questions.find(q => q.id === questionId);
+  if (q) { q.votes++; renderQuestions(); }
+
+  await db.rpc('increment_vote', { question_id: questionId });
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────
+function exportCSV() {
+  const qs = [...state.questions].sort((a, b) => b.votes - a.votes);
+  const rows = [['Question', 'Votes', 'Submitted at']];
+  qs.forEach(q => rows.push([`"${q.text.replace(/"/g, '""')}"`, q.votes, q.created_at]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `bareel-qa-${state.sessionCode}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── PARTICIPANT COUNT ─────────────────────────────────────────────────────
+function updateParticipantCount(count) {
+  document.getElementById('topbar-participant-count').textContent =
+    count === 1 ? '1 participant' : `${count} participants`;
+  document.getElementById('active-participant-count').textContent =
+    count === 1 ? '1 participant' : `${count} participants`;
+}
+
+// ── REALTIME SUBSCRIPTION ─────────────────────────────────────────────────
+function subscribeToSession(sessionId) {
+  if (state.subscription) state.subscription.unsubscribe();
+
+  state.subscription = db.channel(`qa-${sessionId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'qa_questions', filter: `session_id=eq.${sessionId}` },
+      payload => {
+        const exists = state.questions.find(q => q.id === payload.new.id);
+        if (!exists) { state.questions.push(payload.new); renderQuestions(); }
+      })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'qa_questions', filter: `session_id=eq.${sessionId}` },
+      payload => {
+        const idx = state.questions.findIndex(q => q.id === payload.new.id);
+        if (idx !== -1) { state.questions[idx] = payload.new; renderQuestions(); }
+      })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'qa_sessions', filter: `id=eq.${sessionId}` },
+      payload => { updateParticipantCount(payload.new.participant_count || 0); })
+    .subscribe();
+
+  // polling fallback
+  if (state.pollInterval) clearInterval(state.pollInterval);
+  state.pollInterval = setInterval(async () => {
+    if (!state.sessionId) return;
+    const { data: qs } = await db.from('qa_questions').select('*').eq('session_id', sessionId).order('votes', { ascending: false });
+    if (qs) {
+      // merge — preserve voted state
+      qs.forEach(q => {
+        const existing = state.questions.find(e => e.id === q.id);
+        if (!existing) state.questions.push(q);
+        else if (q.votes !== existing.votes) existing.votes = q.votes;
+      });
+      renderQuestions();
+    }
+  }, 2000);
+}
+
+// ── BUILD CODE INPUTS ─────────────────────────────────────────────────────
 function buildCodeInputs() {
   const wrap = document.getElementById('code-input-boxes');
+  if (!wrap) return;
   wrap.innerHTML = '';
   for (let i = 0; i < 6; i++) {
     const inp = document.createElement('input');
@@ -235,102 +762,62 @@ function buildCodeInputs() {
       const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
       text.split('').forEach((ch, idx) => { if (wrap.children[idx]) wrap.children[idx].value = ch; });
       const next = Math.min(text.length, 5);
-      wrap.children[next].focus();
+      if (wrap.children[next]) wrap.children[next].focus();
     });
     wrap.appendChild(inp);
   }
 }
 
-async function findRoom() {
-  const btn = document.getElementById('btn-find');
-  const errEl = document.getElementById('join-error');
-  errEl.classList.remove('visible');
-
-  if (!db) {
-    errEl.textContent = 'Service not configured. Please contact the session organiser.';
-    errEl.classList.add('visible');
-    return;
-  }
-
-  const boxes = document.querySelectorAll('.code-input-box');
-  const code = Array.from(boxes).map(b => b.value).join('');
-  if (code.length < 6) {
-    errEl.textContent = 'Please enter the full 6-digit code.';
-    errEl.classList.add('visible');
-    return;
-  }
-
-  btn.innerHTML = '<div class="spinner"></div>';
-  btn.disabled = true;
-
-  // check rooms table first (standup etc), then qa_sessions
-  let toolType = null;
-
-  const { data: room } = await db
-    .from('rooms')
-    .select('tool_type, status')
-    .eq('code', code)
-    .single();
-
-  if (room) {
-    if (room.status === 'complete') {
-      btn.innerHTML = 'Find session';
-      btn.disabled = false;
-      errEl.textContent = 'This session has already finished.';
-      errEl.classList.add('visible');
-      return;
-    }
-    toolType = room.tool_type || 'standup';
-  } else {
-    // try qa_sessions table
-    const { data: qaSession } = await db
-      .from('qa_sessions')
-      .select('tool_type')
-      .eq('code', code)
-      .single();
-
-    if (qaSession) {
-      toolType = qaSession.tool_type || 'qa';
-    }
-  }
-
-  btn.innerHTML = 'Find session';
-  btn.disabled = false;
-
-  if (!toolType) {
-    errEl.textContent = 'Room not found. Check the code and try again.';
-    errEl.classList.add('visible');
-    return;
-  }
-  const path = TOOL_PATHS[toolType];
-
-  if (!path) {
-    errEl.textContent = 'Unknown session type. Please contact your host.';
-    errEl.classList.add('visible');
-    return;
-  }
-
-  // Redirect to the correct app with code pre-filled
-  window.location.href = `${path}?join&code=${code}`;
+// ── CHAR COUNTER ──────────────────────────────────────────────────────────
+function initCharCounter() {
+  const input = document.getElementById('question-input');
+  const count = document.getElementById('char-count');
+  if (!input || !count) return;
+  input.addEventListener('input', () => {
+    const len = input.value.length;
+    count.textContent = `${len} / 200`;
+    count.classList.toggle('over', len > 200);
+  });
 }
 
+// ── UTILITIES ─────────────────────────────────────────────────────────────
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function timeAgo(dateStr) {
+  const secs = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (secs < 60) return 'just now';
+  if (secs < 3600) return `${Math.floor(secs / 60)} min ago`;
+  return `${Math.floor(secs / 3600)}h ago`;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
+  initCharCounter();
 
-  // Pre-fill code from URL param e.g. /join/?code=123456
   const urlParams = new URLSearchParams(window.location.search);
   const prefilledCode = urlParams.get('code');
-  if (prefilledCode) {
-    const boxes = document.querySelectorAll('.code-input-box');
-    prefilledCode.split('').forEach((ch, i) => {
-      if (boxes[i]) boxes[i].value = ch;
-    });
+
+  if (window.location.search.includes('join') || window.location.pathname.includes('join')) {
+    state.role = 'participant';
+    showScreen('screen-join');
+    if (prefilledCode) {
+      const boxes = document.querySelectorAll('.code-input-box');
+      prefilledCode.split('').forEach((ch, i) => { if (boxes[i]) boxes[i].value = ch; });
+    }
+  } else {
+    state.role = 'host';
+    document.getElementById('topbar-badge').classList.remove('hidden');
+    showScreen('screen-setup');
   }
-  // always focus first empty box or first box
-  const boxes = document.querySelectorAll('.code-input-box');
-  const emptyBox = Array.from(boxes).find(b => !b.value);
-  if (emptyBox) emptyBox.focus();
-  else if (boxes[0]) boxes[0].focus();
 });
 </script>
 </body>

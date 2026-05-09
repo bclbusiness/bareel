@@ -675,7 +675,11 @@ async function createSession() {
   btn.innerHTML = 'Create Q&amp;A session';
   btn.disabled = false;
 
-  if (error) { showError('setup-error', 'Could not create session. Check your Supabase config.'); console.error(error); return; }
+  if (error) {
+    console.error('Supabase error:', error);
+    showError('setup-error', `Could not create session: ${error.message || 'Unknown error'}`);
+    return;
+  }
 
   state.role      = 'host';
   state.sessionId = data.id;

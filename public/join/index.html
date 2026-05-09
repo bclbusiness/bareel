@@ -6,6 +6,7 @@
   <title>Join — Bareel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -193,8 +194,8 @@
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://usrvxlmmepkuhneubxbm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcnZ4bG1tZXBrdWhuZXVieGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjIwMjgsImV4cCI6MjA5MzYzODAyOH0.x6bzlk_PIIq9jYsjmmuKblMlC2iK-scjAlHLZwv0tRE';
+const SUPABASE_URL = BAREEL_CONFIG.supabaseUrl;
+const SUPABASE_ANON_KEY = BAREEL_CONFIG.supabaseAnonKey;
 // ─────────────────────────────────────────────────────────────────────────
 
 const { createClient } = supabase;

@@ -1360,15 +1360,15 @@
 ════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
-const SUPABASE_URL = BAREEL_CONFIG.supabaseUrl;
-const SUPABASE_ANON_KEY = BAREEL_CONFIG.supabaseAnonKey;
+const SUPABASE_URL = window.BAREEL_CONFIG.supabaseUrl;
+const SUPABASE_ANON_KEY = window.BAREEL_CONFIG.supabaseAnonKey;
 // ─────────────────────────────────────────────────────────────────────────
 
 const { createClient } = supabase;
 
 let db;
 try {
-  if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL' || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+  if (!SUPABASE_URL || SUPABASE_URL.includes('YOUR_') || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('YOUR_')) {
     console.warn('Bareel: Supabase credentials not yet set. Open index.html and replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY with your real values from supabase.com.');
   } else {
     db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

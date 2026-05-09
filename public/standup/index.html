@@ -824,7 +824,7 @@
      TOPBAR (shared, content swapped per screen)
 ════════════════════════════════════════════ -->
 <header class="topbar" id="topbar">
-  <div class="logo">B</div>
+  <a id="topbar-logo-link" href="/" class="logo" style="text-decoration:none">B</a>
   <span class="brand-name">Bareel</span>
   <span class="brand-sub">Stand Up</span>
   <span class="badge hidden" id="topbar-badge">Host</span>
@@ -1178,7 +1178,7 @@
     <div id="join-form-wrap">
       <div class="join-card">
         <h1>Join a stand up</h1>
-        <p class="subtitle">Enter the 6-digit code and your name to join.</p>
+        <p class="subtitle">Enter your name to join the stand up.</p>
 
         <div class="field">
           <label>Room code</label>
@@ -1408,6 +1408,11 @@ let state = {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  // update logo link based on role
+  const logoLink = document.getElementById('topbar-logo-link');
+  if (logoLink) {
+    logoLink.href = state.role === 'participant' ? '/?join' : '/';
+  }
 
   const badge   = document.getElementById('topbar-badge');
   const progWrap= document.getElementById('topbar-progress');
@@ -2470,23 +2475,19 @@ document.addEventListener('DOMContentLoaded', () => {
   initOnboarding();
   initAllDragRows();
 
-  // Pre-fill code and name from URL, auto-join if both present
+  // Pre-fill code from URL param e.g. ?join&code=123456
   const urlParams = new URLSearchParams(window.location.search);
   const prefilledCode = urlParams.get('code');
-  const prefilledName = urlParams.get('name');
   if (prefilledCode) {
     const boxes = document.querySelectorAll('.code-input-box');
     prefilledCode.split('').forEach((ch, i) => {
       if (boxes[i]) boxes[i].value = ch;
     });
-  }
-  if (prefilledName) {
-    const nameInput = document.getElementById('participant-name');
-    if (nameInput) nameInput.value = decodeURIComponent(prefilledName);
-  }
-  // if both code and name are present, auto-join straight to lobby
-  if (prefilledCode && prefilledName) {
-    joinRoom();
+    // code is pre-filled — focus name field so participant just types their name
+    setTimeout(() => {
+      const nameInput = document.getElementById('participant-name');
+      if (nameInput) nameInput.focus();
+    }, 100);
   }
 
   // If URL contains ?join, show join screen for participants

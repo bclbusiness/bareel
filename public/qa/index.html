@@ -554,8 +554,8 @@ async function joinSession() {
 
   if (error || !session) { showError('join-error', 'Session not found. Check the code and try again.'); return; }
 
-  // increment participant count
-  await db.from('qa_sessions').update({ participant_count: (session.participant_count || 0) + 1 }).eq('id', session.id);
+  // increment participant count atomically
+  await db.rpc('increment_participant_count', { session_id: session.id });
 
   state.role      = 'participant';
   state.sessionId = session.id;
@@ -594,10 +594,17 @@ function renderActiveScreen(session, questions) {
 }
 
 // ── RENDER QUESTIONS ──────────────────────────────────────────────────────
+let lastRenderKey = '';
+
 function renderQuestions() {
   const list  = document.getElementById('questions-list');
   const label = document.getElementById('questions-label');
   const qs    = [...state.questions].sort((a, b) => b.votes - a.votes);
+
+  // build a fingerprint to detect if anything changed
+  const renderKey = qs.map(q => `${q.id}:${q.votes}:${state.votedIds.has(q.id)}`).join('|');
+  if (renderKey === lastRenderKey) return;
+  lastRenderKey = renderKey;
 
   label.textContent = `Questions (${qs.length})`;
 
@@ -625,11 +632,7 @@ function renderQuestions() {
         </div>
         <div class="q-body">
           <div class="q-text">${escapeHtml(q.text)}${isTop ? ' <span class="top-badge">Top</span>' : ''}</div>
-          <div class="q-meta">
-            <span>Anonymous</span>
-            <span>·</span>
-            <span>${timeAgo(q.created_at)}</span>
-          </div>
+          <div class="q-meta"><span>${timeAgo(q.created_at)}</span></div>
         </div>
       </div>`;
   }).join('');
@@ -725,16 +728,22 @@ function subscribeToSession(sessionId) {
   if (state.pollInterval) clearInterval(state.pollInterval);
   state.pollInterval = setInterval(async () => {
     if (!state.sessionId) return;
+
+    // poll questions
     const { data: qs } = await db.from('qa_questions').select('*').eq('session_id', sessionId).order('votes', { ascending: false });
     if (qs) {
-      // merge — preserve voted state
+      let changed = false;
       qs.forEach(q => {
         const existing = state.questions.find(e => e.id === q.id);
-        if (!existing) state.questions.push(q);
-        else if (q.votes !== existing.votes) existing.votes = q.votes;
+        if (!existing) { state.questions.push(q); changed = true; }
+        else if (q.votes !== existing.votes) { existing.votes = q.votes; changed = true; }
       });
-      renderQuestions();
+      if (changed) renderQuestions();
     }
+
+    // poll session for participant count
+    const { data: sess } = await db.from('qa_sessions').select('participant_count').eq('id', sessionId).single();
+    if (sess) updateParticipantCount(sess.participant_count || 0);
   }, 2000);
 }
 
@@ -808,10 +817,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (window.location.search.includes('join') || window.location.pathname.includes('join')) {
     state.role = 'participant';
-    showScreen('screen-join');
     if (prefilledCode) {
+      // code pre-filled from central join page — skip join screen, go straight in
       const boxes = document.querySelectorAll('.code-input-box');
       prefilledCode.split('').forEach((ch, i) => { if (boxes[i]) boxes[i].value = ch; });
+      joinSession();
+    } else {
+      showScreen('screen-join');
     }
   } else {
     state.role = 'host';

@@ -166,34 +166,25 @@
 <body>
 
 <header class="topbar">
-  <a href="/" class="logo">B</a>
-  <a href="/" class="brand-name">Bareel</a>
+  <a href="/?join" class="logo">B</a>
+  <a href="/?join" class="brand-name">Bareel</a>
 </header>
 
 <main class="join-body">
   <div class="join-card">
     <div class="join-logo">B</div>
     <h1>Join a session</h1>
-    <p class="subtitle">Enter the code shared by your host and your name to join.</p>
+    <p class="subtitle">Enter the 6-digit code shared by your host.</p>
 
     <div class="field">
       <label>Session code</label>
       <div class="code-inputs" id="code-input-boxes"></div>
     </div>
 
-    <div class="field">
-      <label>Your name</label>
-      <input type="text" id="participant-name" placeholder="Enter your name" maxlength="40"
-        style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text-primary);transition:border-color 0.15s,box-shadow 0.15s;appearance:none;"
-        onfocus="this.style.borderColor='var(--brand-mid)';this.style.boxShadow='0 0 0 3px rgba(127,119,221,0.15)'"
-        onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"
-      />
-    </div>
-
     <div class="error-msg" id="join-error"></div>
 
     <button class="btn btn-primary" id="btn-find" onclick="findRoom()">
-      Join session
+      Find session
     </button>
 
     <p class="join-footer">Joining from <span>bareel.app</span></p>
@@ -218,6 +209,7 @@ try {
 // Add new tools here as they are built
 const TOOL_PATHS = {
   'standup': '/standup/',
+  'qa': '/qa/',
 };
 
 // Build 6-digit code input boxes
@@ -262,18 +254,9 @@ async function findRoom() {
 
   const boxes = document.querySelectorAll('.code-input-box');
   const code = Array.from(boxes).map(b => b.value).join('');
-  const name = document.getElementById('participant-name').value.trim();
-
   if (code.length < 6) {
     errEl.textContent = 'Please enter the full 6-digit code.';
     errEl.classList.add('visible');
-    return;
-  }
-
-  if (!name) {
-    errEl.textContent = 'Please enter your name.';
-    errEl.classList.add('visible');
-    document.getElementById('participant-name').focus();
     return;
   }
 
@@ -311,7 +294,7 @@ async function findRoom() {
   }
 
   // Redirect to the correct app with code pre-filled
-  window.location.href = `${path}?join&code=${code}&name=${encodeURIComponent(name)}`;
+  window.location.href = `${path}?join&code=${code}`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -325,14 +308,12 @@ document.addEventListener('DOMContentLoaded', () => {
     prefilledCode.split('').forEach((ch, i) => {
       if (boxes[i]) boxes[i].value = ch;
     });
-    // focus name field since code is already filled
-    const nameInput = document.getElementById('participant-name');
-    if (nameInput) nameInput.focus();
-  } else {
-    // focus first code box
-    const first = document.querySelector('.code-input-box');
-    if (first) first.focus();
   }
+  // always focus first empty box or first box
+  const boxes = document.querySelectorAll('.code-input-box');
+  const emptyBox = Array.from(boxes).find(b => !b.value);
+  if (emptyBox) emptyBox.focus();
+  else if (boxes[0]) boxes[0].focus();
 });
 </script>
 </body>

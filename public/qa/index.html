@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -339,6 +340,99 @@
     }
     .empty-state i { font-size: 32px; display: block; margin-bottom: 10px; }
 
+
+    /* ── ONBOARDING OVERLAY ── */
+    .onboarding-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .onboarding-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    }
+    .onboarding-logo-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px;
+    }
+    .onboarding-title {
+      font-size: 16px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 4px;
+    }
+    .onboarding-desc {
+      font-size: 13px; color: var(--text-secondary);
+      margin-bottom: 20px; line-height: 1.5;
+    }
+    .onboarding-steps {
+      display: flex; flex-direction: column;
+      gap: 0; margin-bottom: 22px;
+    }
+    .onboarding-step {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .onboarding-step-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      background: var(--brand-light);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .onboarding-step-icon i { font-size: 17px; color: var(--brand); }
+    .onboarding-step-label {
+      font-size: 13px; font-weight: 500;
+      color: var(--text-primary); line-height: 1.4;
+    }
+    .onboarding-connector {
+      width: 36px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-tertiary); font-size: 13px;
+      margin: 3px 0;
+    }
+    .onboarding-footer {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .onboarding-dont-show {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .onboarding-dont-show input {
+      width: 14px; height: 14px;
+      accent-color: var(--brand); cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* ── QR CODE ── */
+    .qr-section { margin-top: 14px; text-align: center; }
+    .qr-toggle {
+      font-size: 12px; color: var(--brand);
+      background: none; border: none;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      padding: 0; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .qr-toggle:hover { text-decoration: underline; }
+    .qr-wrap {
+      display: none;
+      margin-top: 12px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      align-items: center; justify-content: center;
+    }
+    .qr-wrap.visible { display: flex; }
+    .qr-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; }
+
     /* ── HIDDEN ── */
     .hidden { display: none !important; }
   </style>
@@ -395,6 +489,18 @@
         <button class="export-btn hidden" id="btn-export" onclick="exportCSV()">
           <i class="ti ti-download" aria-hidden="true"></i> Export CSV
         </button>
+      </div>
+      <div class="qr-section hidden" id="qr-section">
+        <button class="qr-toggle" onclick="toggleQR()">
+          <i class="ti ti-qrcode" aria-hidden="true"></i>
+          <span id="qr-toggle-label">Show QR code</span>
+        </button>
+        <div class="qr-wrap" id="qr-wrap">
+          <div>
+            <div id="qr-code"></div>
+            <div class="qr-hint">Scan to join instantly</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -490,6 +596,52 @@ function showScreen(id) {
   if (id === 'screen-setup') logo.href = '/';
 }
 
+
+// ── QR CODE ───────────────────────────────────────────────────────────────
+let qrInstance = null;
+
+function generateQR(code) {
+  const container = document.getElementById('qr-code');
+  if (!container) return;
+  container.innerHTML = '';
+  const joinUrl = `${window.location.origin}/join/?code=${code}`;
+  qrInstance = new QRCode(container, {
+    text: joinUrl,
+    width: 140,
+    height: 140,
+    colorDark: '#26215C',
+    colorLight: '#EEEDFE',
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+}
+
+function toggleQR() {
+  const wrap = document.getElementById('qr-wrap');
+  const label = document.getElementById('qr-toggle-label');
+  const isVisible = wrap.classList.contains('visible');
+  wrap.classList.toggle('visible', !isVisible);
+  label.textContent = isVisible ? 'Show QR code' : 'Hide QR code';
+}
+
+// ── ONBOARDING ────────────────────────────────────────────────────────────
+function initOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (!overlay) return;
+  if (window.location.search.includes('join') || window.location.pathname.includes('join')) {
+    overlay.style.display = 'none';
+    return;
+  }
+  const dontShow = localStorage.getItem('bareel_qa_hide_onboarding') === 'true';
+  overlay.style.display = dontShow ? 'none' : 'flex';
+}
+
+function closeOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
+  const dontShow = document.getElementById('onboarding-dont-show').checked;
+  if (dontShow) localStorage.setItem('bareel_qa_hide_onboarding', 'true');
+  overlay.style.display = 'none';
+}
+
 // ── GENERATE CODE ─────────────────────────────────────────────────────────
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -528,6 +680,9 @@ async function createSession() {
   state.role      = 'host';
   state.sessionId = data.id;
   state.sessionCode = code;
+
+  // save to localStorage
+  saveQASettings(name, welcome);
 
   renderActiveScreen(data, []);
   subscribeToSession(data.id);
@@ -580,12 +735,18 @@ function renderActiveScreen(session, questions) {
   // host-only controls
   const exportBtn = document.getElementById('btn-export');
   const submitBox = document.getElementById('submit-box');
+  const qrSection = document.getElementById('qr-section');
   if (state.role === 'host') {
     exportBtn.classList.remove('hidden');
     submitBox.classList.add('hidden');
+    if (qrSection) {
+      qrSection.classList.remove('hidden');
+      generateQR(state.sessionCode);
+    }
   } else {
     exportBtn.classList.add('hidden');
     submitBox.classList.remove('hidden');
+    if (qrSection) qrSection.classList.add('hidden');
   }
 
   state.questions = questions || [];
@@ -812,6 +973,11 @@ function timeAgo(dateStr) {
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
   initCharCounter();
+  initOnboarding();
+
+  if (!window.location.search.includes('join') && !window.location.pathname.includes('join')) {
+    loadQASettings();
+  }
 
   const urlParams = new URLSearchParams(window.location.search);
   const prefilledCode = urlParams.get('code');
@@ -833,5 +999,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<!-- ═══════════════════════════════════════════
+     ONBOARDING OVERLAY
+════════════════════════════════════════════ -->
+<div class="onboarding-backdrop" id="onboarding-overlay">
+  <div class="onboarding-card">
+    <div class="onboarding-logo-row">
+      <div class="logo">B</div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary)">Bareel Q&amp;A</div>
+      </div>
+    </div>
+    <div class="onboarding-title">How it works</div>
+    <div class="onboarding-desc">Four simple steps — here's what to expect.</div>
+
+    <div class="onboarding-steps">
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-settings" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Create your Q&amp;A session</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-share" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Share your code</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Good to go!</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-download" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Export questions if you'd like!</div>
+      </div>
+    </div>
+
+    <div class="onboarding-footer">
+      <label class="onboarding-dont-show">
+        <input type="checkbox" id="onboarding-dont-show" />
+        Don't show this again
+      </label>
+      <button class="btn btn-primary btn-sm" onclick="closeOnboarding()">Got it</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

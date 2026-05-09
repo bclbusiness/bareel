@@ -649,52 +649,35 @@ function generateCode() {
 
 // ── CREATE SESSION ────────────────────────────────────────────────────────
 async function createSession() {
-  console.log('createSession called');
   const btn    = document.getElementById('btn-create');
   const errEl  = document.getElementById('setup-error');
   errEl.classList.remove('visible');
 
-  console.log('db:', db);
   if (!db) { showError('setup-error', 'Supabase not configured.'); return; }
 
   const name    = document.getElementById('session-name').value.trim();
   const welcome = document.getElementById('session-welcome').value.trim();
-  console.log('name:', name, 'welcome:', welcome);
   if (!name) { showError('setup-error', 'Please enter a session name.'); return; }
 
   btn.innerHTML = '<div class="spinner"></div> Creating...';
   btn.disabled = true;
 
   const code = generateCode();
-  console.log('code:', code);
-  console.log('Attempting Supabase insert...');
 
-  let data, error;
-  try {
-    const result = await db.from('qa_sessions').insert({
-      code,
-      name,
-      welcome_message: welcome,
-      tool_type: 'qa',
-      participant_count: 0,
-    }).select().single();
-    data = result.data;
-    error = result.error;
-    console.log('Supabase result:', { data, error });
-  } catch(e) {
-    console.error('Exception during insert:', e);
-    showError('setup-error', `Exception: ${e.message}`);
-    btn.innerHTML = 'Create Q&amp;A session';
-    btn.disabled = false;
-    return;
-  }
+  const { data, error } = await db.from('qa_sessions').insert({
+    code,
+    name,
+    welcome_message: welcome,
+    tool_type: 'qa',
+    participant_count: 0,
+  }).select().single();
 
   btn.innerHTML = 'Create Q&amp;A session';
   btn.disabled = false;
 
   if (error) {
     console.error('Supabase error:', error);
-    showError('setup-error', `Could not create session: ${error.message || JSON.stringify(error)}`);
+    showError('setup-error', `Could not create session: ${error.message || 'Unknown error'}`);
     return;
   }
 
@@ -970,6 +953,23 @@ function initCharCounter() {
     count.textContent = `${len} / 200`;
     count.classList.toggle('over', len > 200);
   });
+}
+
+
+// ── LOCALSTORAGE ──────────────────────────────────────────────────────────
+function saveQASettings(name, welcome) {
+  try {
+    localStorage.setItem('bareel_qa_settings', JSON.stringify({ name, welcome }));
+  } catch(e) {}
+}
+
+function loadQASettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bareel_qa_settings'));
+    if (!saved) return;
+    if (saved.name) document.getElementById('session-name').value = saved.name;
+    if (saved.welcome) document.getElementById('session-welcome').value = saved.welcome;
+  } catch(e) {}
 }
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────

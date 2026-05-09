@@ -568,15 +568,15 @@
 
     /* ── YOUR TURN BANNER ── */
     .your-turn-banner {
-      background: linear-gradient(135deg, #534AB7, #7F77DD);
-      color: white;
+      background: #F5A623;
+      color: #4A2C00;
       border-radius: var(--radius-sm);
-      padding: 16px 20px;
-      font-size: 17px; font-weight: 600;
+      padding: 20px 24px;
+      font-size: 20px; font-weight: 600;
       text-align: center;
       margin-bottom: 16px;
       display: none;
-      box-shadow: 0 4px 20px rgba(83,74,183,0.35);
+      box-shadow: 0 4px 24px rgba(245,166,35,0.4);
       letter-spacing: 0.2px;
       animation: pulse-banner 1.8s ease-in-out infinite;
     }
@@ -1226,7 +1226,7 @@
 ════════════════════════════════════════════ -->
 <div class="screen" id="screen-active">
   <div class="container-wide">
-    <div class="your-turn-banner" id="your-turn-banner">🎙 It's your turn to speak!</div>
+    <div class="your-turn-banner" id="your-turn-banner">It's your turn to speak!</div>
     <div class="new-joiners-banner" id="new-joiners-banner"></div>
     <div class="paused-banner" id="paused-banner">⏸ Stand up paused by host</div>
 
@@ -2091,9 +2091,9 @@ function updateActiveSpeaker(room) {
   const canSeeNext = state.role === 'admin' || isCurrentSpeaker;
   document.getElementById('btn-next-person').style.display = canSeeNext ? 'block' : 'none';
 
-  // your turn banner — show prominently to current speaker only (not host)
+  // your turn banner — show to current speaker AND host if they are the speaker
   const yourTurnBanner = document.getElementById('your-turn-banner');
-  if (yourTurnBanner) yourTurnBanner.classList.toggle('visible', isCurrentSpeaker && state.role !== 'admin');
+  if (yourTurnBanner) yourTurnBanner.classList.toggle('visible', isCurrentSpeaker);
   // change button text for last speaker
   const isLastSpeaker = state.currentIndex >= state.speakerOrder.length - 1;
   const nextBtn = document.getElementById('btn-next-person');

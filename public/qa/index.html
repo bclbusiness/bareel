@@ -649,35 +649,52 @@ function generateCode() {
 
 // ── CREATE SESSION ────────────────────────────────────────────────────────
 async function createSession() {
+  console.log('createSession called');
   const btn    = document.getElementById('btn-create');
   const errEl  = document.getElementById('setup-error');
   errEl.classList.remove('visible');
 
+  console.log('db:', db);
   if (!db) { showError('setup-error', 'Supabase not configured.'); return; }
 
   const name    = document.getElementById('session-name').value.trim();
   const welcome = document.getElementById('session-welcome').value.trim();
+  console.log('name:', name, 'welcome:', welcome);
   if (!name) { showError('setup-error', 'Please enter a session name.'); return; }
 
   btn.innerHTML = '<div class="spinner"></div> Creating...';
   btn.disabled = true;
 
   const code = generateCode();
+  console.log('code:', code);
+  console.log('Attempting Supabase insert...');
 
-  const { data, error } = await db.from('qa_sessions').insert({
-    code,
-    name,
-    welcome_message: welcome,
-    tool_type: 'qa',
-    participant_count: 0,
-  }).select().single();
+  let data, error;
+  try {
+    const result = await db.from('qa_sessions').insert({
+      code,
+      name,
+      welcome_message: welcome,
+      tool_type: 'qa',
+      participant_count: 0,
+    }).select().single();
+    data = result.data;
+    error = result.error;
+    console.log('Supabase result:', { data, error });
+  } catch(e) {
+    console.error('Exception during insert:', e);
+    showError('setup-error', `Exception: ${e.message}`);
+    btn.innerHTML = 'Create Q&amp;A session';
+    btn.disabled = false;
+    return;
+  }
 
   btn.innerHTML = 'Create Q&amp;A session';
   btn.disabled = false;
 
   if (error) {
     console.error('Supabase error:', error);
-    showError('setup-error', `Could not create session: ${error.message || 'Unknown error'}`);
+    showError('setup-error', `Could not create session: ${error.message || JSON.stringify(error)}`);
     return;
   }
 

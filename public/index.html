@@ -157,8 +157,15 @@
     .app-card:nth-child(5) { animation-delay: 0.25s; }
     .app-card:nth-child(6) { animation-delay: 0.30s; }
 
-    .tab-content { display: none; }
+
+    /* ── TAB TRANSITIONS ── */
+    .tab-content { display: none; position: relative; }
     .tab-content.active { display: block; }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideInLeft  { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+    .slide-in-right { animation: slideInRight 0.25s ease both; }
+    .slide-in-left  { animation: slideInLeft  0.25s ease both; }
+
   </style>
 </head>
 <body>
@@ -166,20 +173,20 @@
 <header class="topbar">
   <a href="/" class="logo">B</a>
   <a href="/" class="brand-name">Bareel</a>
-  <span class="brand-domain">· host</span>
+  <span class="brand-domain">· Host a session!</span>
   <nav class="topbar-nav">
     <button class="nav-tab active" onclick="switchTab('work', this)">Work</button>
-    <button class="nav-tab disabled" title="Coming soon">Home</button>
-    <button class="nav-tab disabled" title="Coming soon">Fun</button>
+    <button class="nav-tab" onclick="switchTab('home', this)">Home</button>
+    <button class="nav-tab" onclick="switchTab('fun', this)">Fun</button>
   </nav>
 </header>
 
 <main class="page-body">
 
   <div class="hero">
-    <div class="hero-eyebrow">Bareel for work</div>
-    <h1 class="hero-title">Pick a tool, share a code, get started instantly.</h1>
-    <p class="hero-sub">Every Bareel tool works the same way — you set it up, your team joins instantly and you're good to go. Free and simple to use. No accounts needed for hosts or participants.</p>
+    <div class="hero-eyebrow" id="hero-eyebrow">Bareel for work</div>
+    <h1 class="hero-title" id="hero-title">Free to use, lightweight productivity tools for your remote teams.</h1>
+    <p class="hero-sub" id="hero-sub">Every Bareel tool works the same way — create a session and your team can join instantly. Free and simple to use. No accounts needed for hosts or participants.</p>
   </div>
 
   <div class="how-strip">
@@ -277,6 +284,179 @@
     </div>
   </div>
 
+
+  <!-- HOME TAB -->
+  <div class="tab-content" id="tab-home">
+    <div class="section-label">Home apps</div>
+    <div class="app-grid">
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-checklist" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Chore List</div>
+        <div class="app-desc">Shared household chore lists — assign, track and tick off together.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-shopping-cart" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Shopping List</div>
+        <div class="app-desc">Collaborative shopping lists — everyone adds, nobody doubles up.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Meal Planner</div>
+        <div class="app-desc">Plan the week's meals together — no more "what's for dinner?"</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-coin" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Budget Tracker</div>
+        <div class="app-desc">Track shared household spending — simple, transparent, fair.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-message-question" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Family Q&amp;A</div>
+        <div class="app-desc">Anonymous questions for families — a safe space to ask anything.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-writing" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Home Whiteboard</div>
+        <div class="app-desc">A shared canvas for notes, plans and ideas around the home.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FUN TAB -->
+  <div class="tab-content" id="tab-fun">
+    <div class="section-label">Fun apps</div>
+    <div class="app-grid">
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-trophy" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Quizzer</div>
+        <div class="app-desc">Host a live quiz for friends, family or your team — no app needed.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-grid-dots" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Battleships</div>
+        <div class="app-desc">Classic naval strategy game — play live with anyone, anywhere.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-abc" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Word Game</div>
+        <div class="app-desc">Fast-paced word challenges for groups — who'll be last standing?</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Countdown</div>
+        <div class="app-desc">Letters, numbers and the clock — a live group word and maths game.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-cards" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Bingo</div>
+        <div class="app-desc">Live multiplayer bingo — call the numbers, fill your card, shout!</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-pencil" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Draw &amp; Guess</div>
+        <div class="app-desc">One person draws, everyone guesses — chaotic fun for any group.</div>
+        <div class="app-footer">
+          <span class="badge badge-soon">Coming soon</span>
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </main>
 
 <footer class="page-footer">
@@ -288,12 +468,52 @@
     window.location.replace('/join/');
   }
 
+  const TAB_ORDER = ['work', 'home', 'fun'];
+  let currentTab = 'work';
+
+  const HERO = {
+    work: {
+      eyebrow: 'Bareel for work',
+      title: 'Free to use, lightweight productivity tools for your remote teams.',
+      sub: 'Every Bareel tool works the same way — create a session and your team can join instantly. Free and simple to use. No accounts needed for hosts or participants.',
+    },
+    home: {
+      eyebrow: 'Bareel at home',
+      title: 'Simple tools to keep your household organised and in sync.',
+      sub: 'From chore lists to meal planning — every Bareel home tool works the same way. Create a session, share the code, and everyone is on the same page instantly.',
+    },
+    fun: {
+      eyebrow: 'Bareel for fun',
+      title: 'Live multiplayer games for friends, families and teams.',
+      sub: 'No downloads, no sign-ups, no faff. Create a game, share the code, and everyone can join from their own device — the fun starts in seconds.',
+    },
+  };
+
   function switchTab(tab, el) {
+    if (tab === currentTab) return;
+    const currentIdx = TAB_ORDER.indexOf(currentTab);
+    const newIdx     = TAB_ORDER.indexOf(tab);
+    const goingRight = newIdx > currentIdx;
+
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => {
+      t.classList.remove('active', 'slide-in-right', 'slide-in-left');
+    });
+
     el.classList.add('active');
-    const content = document.getElementById('tab-' + tab);
-    if (content) content.classList.add('active');
+    const newContent = document.getElementById('tab-' + tab);
+    if (newContent) {
+      newContent.classList.add('active', goingRight ? 'slide-in-right' : 'slide-in-left');
+    }
+
+    const h = HERO[tab];
+    if (h) {
+      document.getElementById('hero-eyebrow').textContent = h.eyebrow;
+      document.getElementById('hero-title').textContent   = h.title;
+      document.getElementById('hero-sub').textContent     = h.sub;
+    }
+
+    currentTab = tab;
   }
 </script>
 

@@ -4,7 +4,7 @@
   <script src="/config.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bareel Contact Form</title>
+  <title>Bareel Q&A</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
@@ -43,6 +43,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── TOPBAR ── */
     .topbar {
       background: var(--bg-card);
       border-bottom: 1px solid var(--border);
@@ -61,7 +62,8 @@
       border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; font-weight: 600; color: white;
-      flex-shrink: 0; text-decoration: none;
+      flex-shrink: 0;
+      text-decoration: none;
     }
     .brand-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
     .brand-sub  { font-size: 13px; color: var(--text-secondary); margin-left: 2px; }
@@ -81,19 +83,21 @@
       border-radius: 50%; background: var(--green);
       animation: pulse-dot 2s ease-in-out infinite;
     }
-    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
 
+    /* ── SCREENS ── */
     .screen { display: none; }
     .screen.active { display: block; }
     #screen-join { min-height: calc(100vh - 56px); flex-direction: column; }
     #screen-join.active { display: flex; }
-    #screen-thanks { min-height: calc(100vh - 56px); flex-direction: column; }
-    #screen-thanks.active { display: flex; }
-    #screen-ended { min-height: calc(100vh - 56px); flex-direction: column; }
-    #screen-ended.active { display: flex; }
 
+    /* ── CONTAINERS ── */
     .container { max-width: 640px; margin: 0 auto; padding: 32px 20px; }
 
+    /* ── TYPOGRAPHY ── */
     h1 { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
     .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
     .section-label {
@@ -102,6 +106,7 @@
       margin-bottom: 12px;
     }
 
+    /* ── CARDS ── */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -110,6 +115,7 @@
       box-shadow: var(--shadow);
     }
 
+    /* ── FORM ── */
     .field { margin-bottom: 20px; }
     label {
       display: block;
@@ -117,7 +123,7 @@
       color: var(--text-secondary);
       margin-bottom: 6px;
     }
-    input[type="text"], input[type="email"], input[type="tel"], textarea {
+    input[type="text"], textarea {
       width: 100%;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -136,6 +142,7 @@
     textarea { resize: none; line-height: 1.5; }
     hr.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
 
+    /* ── BUTTONS ── */
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       padding: 11px 24px;
@@ -148,13 +155,12 @@
     .btn-primary { background: var(--brand); color: white; box-shadow: 0 2px 8px rgba(83,74,183,0.3); }
     .btn-primary:hover { background: var(--brand-dark); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-outline { background: none; color: var(--brand); border: 1px solid #afa9ec; }
-    .btn-outline:hover { background: var(--brand-light); }
-    .btn-ghost { background: none; color: var(--text-secondary); border: 1px solid var(--border); }
-    .btn-ghost:hover { border-color: var(--brand-mid); color: var(--brand); }
+    .btn-outline { background: none; color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--brand-mid); color: var(--brand); }
     .btn-full { width: 100%; }
     .btn-sm { padding: 7px 14px; font-size: 13px; }
 
+    /* ── ERROR ── */
     .error-msg {
       font-size: 13px; color: var(--red);
       background: #fee8e8; border-radius: var(--radius-sm);
@@ -162,6 +168,7 @@
     }
     .error-msg.visible { display: block; }
 
+    /* ── SPINNER ── */
     .spinner {
       width: 18px; height: 18px;
       border: 2px solid rgba(255,255,255,0.3);
@@ -171,151 +178,168 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── FIELD SELECTOR ── */
-    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
-    .field-option {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      cursor: pointer;
-      transition: all 0.15s;
-      user-select: none;
-    }
-    .field-option:hover { border-color: var(--brand-mid); }
-    .field-option.selected { background: var(--brand-light); border-color: #afa9ec; }
-    .field-option.full-width { grid-column: 1 / -1; }
-    .field-checkbox {
-      width: 16px; height: 16px;
-      border-radius: 4px;
-      border: 1.5px solid var(--border);
-      background: var(--bg-card);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: all 0.15s;
-    }
-    .field-option.selected .field-checkbox {
-      background: var(--brand); border-color: var(--brand);
-    }
-    .field-option.selected .field-checkbox::after {
-      content: '';
-      width: 8px; height: 5px;
-      border-left: 2px solid white;
-      border-bottom: 2px solid white;
-      transform: rotate(-45deg) translateY(-1px);
-      display: block;
-    }
-    .field-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-    .field-option.selected .field-name { color: var(--brand-dark); }
-    .field-hint { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
-    .field-option.selected .field-hint { color: var(--brand-mid); }
-
-    /* ── CODE DISPLAY ── */
-    .code-display {
-      background: var(--brand-light);
-      border: 1px solid #cccaf5;
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .code-digits { display: flex; gap: 7px; justify-content: center; margin: 10px 0; }
-    .code-digit {
-      width: 38px; height: 48px;
-      background: white; border: 1px solid #cccaf5;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; font-weight: 600;
-      color: var(--brand-dark);
-      font-family: 'DM Mono', monospace;
-    }
-    .code-url { font-size: 12px; color: var(--brand); margin-top: 4px; }
-
-    /* ── QR CODE ── */
-    .qr-section { margin-top: 12px; text-align: center; }
-    .qr-toggle {
-      font-size: 12px; color: var(--brand);
-      background: none; border: none;
-      cursor: pointer; font-family: 'DM Sans', sans-serif;
-      padding: 0; display: inline-flex; align-items: center; gap: 5px;
-    }
-    .qr-toggle:hover { text-decoration: underline; }
-    .qr-wrap {
-      display: none; margin-top: 12px;
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 12px;
-      align-items: center; justify-content: center;
-    }
-    .qr-wrap.visible { display: flex; }
-    .qr-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; }
-
-    /* ── RESPONSES TABLE ── */
-    .responses-wrap {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-    .resp-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 10px;
-    }
-    .resp-row {
-      display: grid;
-      gap: 8px;
-      padding: 9px 14px;
-      border-bottom: 1px solid var(--border-light);
-      font-size: 13px; color: var(--text-primary);
-      align-items: center;
-    }
-    .resp-row:last-child { border-bottom: none; }
-    .resp-row.hdr {
-      font-size: 11px; color: var(--text-secondary); font-weight: 500;
-      background: var(--bg); text-transform: uppercase; letter-spacing: 0.3px;
-    }
-    .resp-time { font-size: 11px; color: var(--text-tertiary); }
-
     /* ── JOIN SCREEN ── */
-    .center-body {
+    .join-body {
       flex: 1;
       display: flex; align-items: center; justify-content: center;
       padding: 32px 20px;
     }
-    .form-card {
+    .join-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 32px 28px;
-      width: 100%; max-width: 420px;
+      padding: 36px 32px;
+      width: 100%; max-width: 400px;
       box-shadow: var(--shadow-lg);
+      text-align: center;
     }
+    .join-card h1 { text-align: center; margin-bottom: 6px; }
+    .join-card .subtitle { text-align: center; }
     .code-inputs { display: flex; gap: 8px; justify-content: center; }
     .code-input-box {
       width: 44px; height: 54px;
       border: 1.5px solid var(--border);
-      border-radius: 10px; background: var(--bg);
+      border-radius: 10px;
+      background: var(--bg);
       font-size: 24px; font-weight: 600;
       font-family: 'DM Mono', monospace;
-      color: var(--brand-dark); text-align: center;
+      color: var(--brand-dark);
+      text-align: center;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .code-input-box:focus {
-      outline: none; border-color: var(--brand-mid);
+      outline: none;
+      border-color: var(--brand-mid);
       box-shadow: 0 0 0 3px rgba(127,119,221,0.15);
       background: var(--brand-light);
     }
-    .privacy-note {
-      font-size: 12px; color: var(--text-tertiary);
-      background: var(--bg); border-radius: var(--radius-sm);
-      padding: 10px 12px; margin-bottom: 16px;
-      line-height: 1.6; border: 1px solid var(--border-light);
+
+    /* ── SESSION HEADER ── */
+    .session-header {
+      margin-bottom: 24px;
     }
-    .char-row {
-      display: flex; justify-content: space-between;
-      align-items: center; margin-bottom: 6px;
+    .session-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .session-welcome { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+    .session-meta {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     }
-    .char-count { font-size: 11px; color: var(--text-tertiary); }
+    .code-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px; font-weight: 500;
+      background: var(--brand-light);
+      border: 1px solid #cccaf5;
+      color: var(--brand-dark);
+      border-radius: var(--radius-sm);
+      padding: 4px 12px;
+      letter-spacing: 2px;
+    }
+    .participant-count {
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .export-btn {
+      margin-left: auto;
+      font-size: 12px; color: var(--text-secondary);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .export-btn:hover { border-color: var(--brand-mid); color: var(--brand); }
+
+    /* ── SUBMIT BOX ── */
+    .submit-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .submit-box textarea {
+      margin-bottom: 10px;
+      height: 72px;
+    }
+    .submit-row {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .char-count { font-size: 12px; color: var(--text-tertiary); }
     .char-count.over { color: var(--red); }
+
+    /* ── QUESTIONS LIST ── */
+    .questions-list {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .q-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      display: flex; gap: 12px;
+      align-items: flex-start;
+      transition: border-color 0.15s;
+      animation: fadeUp 0.25s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .q-card.top-question {
+      border-color: #afa9ec;
+      background: var(--brand-light);
+    }
+    .upvote-col {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 3px; flex-shrink: 0;
+    }
+    .upvote-btn {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .upvote-btn:hover { border-color: var(--brand-mid); background: var(--brand-light); }
+    .upvote-btn.voted {
+      background: var(--brand-light);
+      border-color: #afa9ec;
+    }
+    .upvote-btn i { font-size: 16px; color: var(--text-secondary); transition: color 0.15s; }
+    .upvote-btn.voted i { color: var(--brand); }
+    .upvote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .upvote-count {
+      font-size: 13px; font-weight: 600; color: var(--text-secondary);
+      min-width: 34px; text-align: center;
+    }
+    .upvote-btn.voted ~ .upvote-count { color: var(--brand); }
+    .q-body { flex: 1; }
+    .q-text {
+      font-size: 14px; color: var(--text-primary);
+      line-height: 1.5; margin-bottom: 5px;
+    }
+    .top-question .q-text { color: var(--brand-dark); }
+    .q-meta { font-size: 12px; color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; }
+    .top-question .q-meta { color: var(--brand-mid); }
+    .top-badge {
+      font-size: 10px; font-weight: 600;
+      background: var(--brand);
+      color: white;
+      padding: 2px 7px; border-radius: 20px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-tertiary);
+      font-size: 14px;
+    }
+    .empty-state i { font-size: 32px; display: block; margin-bottom: 10px; }
+
 
     /* ── ONBOARDING OVERLAY ── */
     .onboarding-backdrop {
@@ -333,34 +357,83 @@
       width: 100%; max-width: 380px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.18);
     }
-    .onboarding-logo-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .onboarding-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
-    .onboarding-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
-    .onboarding-steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 22px; }
-    .onboarding-step { display: flex; align-items: center; gap: 12px; }
+    .onboarding-logo-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px;
+    }
+    .onboarding-title {
+      font-size: 16px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 4px;
+    }
+    .onboarding-desc {
+      font-size: 13px; color: var(--text-secondary);
+      margin-bottom: 20px; line-height: 1.5;
+    }
+    .onboarding-steps {
+      display: flex; flex-direction: column;
+      gap: 0; margin-bottom: 22px;
+    }
+    .onboarding-step {
+      display: flex; align-items: center; gap: 12px;
+    }
     .onboarding-step-icon {
-      width: 36px; height: 36px; border-radius: 9px;
+      width: 36px; height: 36px;
+      border-radius: 9px;
       background: var(--brand-light);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
     .onboarding-step-icon i { font-size: 17px; color: var(--brand); }
-    .onboarding-step-label { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.4; }
+    .onboarding-step-label {
+      font-size: 13px; font-weight: 500;
+      color: var(--text-primary); line-height: 1.4;
+    }
     .onboarding-connector {
-      width: 36px; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; color: var(--text-tertiary); font-size: 13px; margin: 3px 0;
+      width: 36px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-tertiary); font-size: 13px;
+      margin: 3px 0;
     }
     .onboarding-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      padding-top: 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
     .onboarding-dont-show {
       display: flex; align-items: center; gap: 7px;
-      font-size: 12px; color: var(--text-secondary); cursor: pointer;
+      font-size: 12px; color: var(--text-secondary);
+      cursor: pointer;
     }
     .onboarding-dont-show input {
-      width: 14px; height: 14px; accent-color: var(--brand); cursor: pointer; flex-shrink: 0;
+      width: 14px; height: 14px;
+      accent-color: var(--brand); cursor: pointer;
+      flex-shrink: 0;
     }
 
+    /* ── QR CODE ── */
+    .qr-section { margin-top: 14px; text-align: center; }
+    .qr-toggle {
+      font-size: 12px; color: var(--brand);
+      background: none; border: none;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      padding: 0; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .qr-toggle:hover { text-decoration: underline; }
+    .qr-wrap {
+      display: none;
+      margin-top: 12px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      align-items: center; justify-content: center;
+    }
+    .qr-wrap.visible { display: flex; }
+    .qr-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; }
+
+    /* ── HIDDEN ── */
     .hidden { display: none !important; }
   </style>
 </head>
@@ -369,11 +442,11 @@
 <header class="topbar">
   <a id="topbar-logo-link" href="/" class="logo" style="text-decoration:none">B</a>
   <span class="brand-name">Bareel</span>
-  <span class="brand-sub">Contact Form</span>
+  <span class="brand-sub">Q&A</span>
   <span class="badge hidden" id="topbar-badge">Host</span>
   <div class="live-indicator hidden" id="topbar-live">
     <div class="live-dot"></div>
-    <span id="topbar-resp-count">0 responses</span>
+    <span id="topbar-participant-count">0 participants</span>
   </div>
 </header>
 
@@ -382,73 +455,42 @@
 ════════════════════════════════════════════ -->
 <div class="screen active" id="screen-setup">
   <div class="container">
-    <h1>Create a contact form</h1>
-    <p class="subtitle">Choose which details to collect, share the code, done.</p>
+    <h1>Create a Q&amp;A session</h1>
+    <p class="subtitle">Set up your session and share the code — your audience can ask questions anonymously.</p>
     <div class="card">
       <div class="field">
         <label>Session name</label>
-        <input type="text" id="session-name" placeholder="e.g. Product demo — May 2026" />
+        <input type="text" id="session-name" placeholder="e.g. Product roadmap Q&A" />
       </div>
       <div class="field">
-        <label>Fields to collect</label>
-        <div class="field-grid" id="field-selector">
-          <div class="field-option selected" data-field="first_name" onclick="toggleField(this)">
-            <div class="field-checkbox"></div>
-            <span class="field-name">First name</span>
-          </div>
-          <div class="field-option selected" data-field="last_name" onclick="toggleField(this)">
-            <div class="field-checkbox"></div>
-            <span class="field-name">Last name</span>
-          </div>
-          <div class="field-option selected" data-field="email" onclick="toggleField(this)">
-            <div class="field-checkbox"></div>
-            <span class="field-name">Email address</span>
-          </div>
-          <div class="field-option" data-field="phone" onclick="toggleField(this)">
-            <div class="field-checkbox"></div>
-            <span class="field-name">Phone number</span>
-          </div>
-          <div class="field-option full-width" data-field="message" onclick="toggleField(this)">
-            <div class="field-checkbox"></div>
-            <span class="field-name">Short message</span>
-            <span class="field-hint">200 chars max</span>
-          </div>
-        </div>
-      </div>
-      <div class="field" style="margin-top:8px">
-        <label>Response visibility</label>
-        <label for="responses-visible" style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer">
-          <input type="checkbox" id="responses-visible" checked style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;flex-shrink:0" />
-          <div>
-            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Show responses on screen</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Uncheck if you're screensharing and don't want others to see submitted details</div>
-          </div>
-        </label>
+        <label>Welcome message <span style="color:var(--text-tertiary);font-weight:400">(optional)</span></label>
+        <input type="text" id="session-welcome" placeholder="e.g. Ask us anything about the roadmap!" />
       </div>
       <div class="error-msg" id="setup-error"></div>
       <hr class="divider" />
       <button class="btn btn-primary btn-full" id="btn-create" onclick="createSession()">
-        Create contact form
+        Create Q&amp;A session
       </button>
     </div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
-     SCREEN 2 — ACTIVE SESSION (host)
+     SCREEN 2 — ACTIVE SESSION (host + participant)
 ════════════════════════════════════════════ -->
 <div class="screen" id="screen-active">
   <div class="container">
-    <div style="margin-bottom:24px">
-      <div style="font-size:22px;font-weight:600;color:var(--text-primary);margin-bottom:4px" id="active-session-name"></div>
-      <div style="font-size:14px;color:var(--text-secondary)" id="active-session-sub">Session open</div>
-    </div>
-
-    <div class="code-display">
-      <div class="section-label">Share this code to join</div>
-      <div class="code-digits" id="active-code-digits"></div>
-      <div class="code-url">bareel.app</div>
-      <div class="qr-section">
+    <div class="session-header">
+      <div class="session-title" id="active-session-name"></div>
+      <div class="session-welcome" id="active-session-welcome"></div>
+      <div class="session-meta">
+        <span class="code-pill" id="active-code-pill"></span>
+        <span class="participant-count" id="active-participant-count"></span>
+        <button class="export-btn hidden" id="btn-export" onclick="exportCSV()">
+          <i class="ti ti-download" aria-hidden="true"></i> Export CSV
+        </button>
+      </div>
+      <div class="qr-section hidden" id="qr-section">
         <button class="qr-toggle" onclick="toggleQR()">
           <i class="ti ti-qrcode" aria-hidden="true"></i>
           <span id="qr-toggle-label">Show QR code</span>
@@ -462,392 +504,195 @@
       </div>
     </div>
 
-    <div class="resp-header">
-      <div class="section-label" style="margin-bottom:0">Responses</div>
-      <div style="font-size:12px;color:var(--text-secondary)" id="resp-count-label">0 received</div>
-    </div>
-
-    <div class="responses-wrap">
-      <div class="resp-row hdr" id="resp-header-row"></div>
-      <div id="responses-list">
-        <div style="text-align:center;padding:24px;font-size:13px;color:var(--text-tertiary)">
-          Waiting for responses...
-        </div>
+    <!-- Submit box — participants only -->
+    <div class="submit-box hidden" id="submit-box">
+      <label style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;display:block">Ask a question anonymously</label>
+      <textarea id="question-input" placeholder="Type your question here..." maxlength="200"></textarea>
+      <div class="submit-row">
+        <span class="char-count" id="char-count">0 / 200</span>
+        <button class="btn btn-primary btn-sm" id="btn-submit" onclick="submitQuestion()">
+          Submit question
+        </button>
       </div>
     </div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);display:none" id="message-note">Any custom messages included in participant responses will be included in the CSV export.</div>
 
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="endSession()">End session</button>
-      <button class="btn btn-outline" onclick="exportCSV()" style="display:inline-flex;align-items:center;gap:6px">
-        <i class="ti ti-download" aria-hidden="true" style="font-size:13px"></i> Export CSV
-      </button>
+    <div class="section-label" id="questions-label">Questions (0)</div>
+    <div class="questions-list" id="questions-list">
+      <div class="empty-state">
+        <i class="ti ti-message-question" aria-hidden="true"></i>
+        No questions yet — be the first to ask!
+      </div>
     </div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
-     SCREEN 3 — JOIN (participant code entry)
+     SCREEN 3 — JOIN (participant entry)
 ════════════════════════════════════════════ -->
 <div class="screen" id="screen-join">
-  <div class="center-body">
-    <div class="form-card">
-      <h1 style="text-align:center;margin-bottom:6px">Join a session</h1>
-      <p class="subtitle" style="text-align:center">Enter the 6-digit code from your host.</p>
-      <div class="field">
-        <label>Session code</label>
+  <div class="join-body">
+    <div class="join-card">
+      <h1>Join a Q&amp;A</h1>
+      <p class="subtitle">Enter the 6-digit code from your host.</p>
+      <div class="field" style="margin-bottom:20px">
+        <label style="text-align:left;display:block;margin-bottom:6px">Session code</label>
         <div class="code-inputs" id="code-input-boxes"></div>
       </div>
       <div class="error-msg" id="join-error"></div>
       <button class="btn btn-primary btn-full" id="btn-join" onclick="joinSession()">
-        Find session
+        Join Q&amp;A
       </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     SCREEN 4 — PARTICIPANT FORM
-════════════════════════════════════════════ -->
-<div class="screen" id="screen-form">
-  <div class="center-body">
-    <div class="form-card">
-      <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:18px;font-weight:600;color:var(--text-primary);margin-bottom:4px">Share your details</div>
-        <div style="font-size:13px;color:var(--text-secondary)" id="form-session-name"></div>
-      </div>
-      <div class="privacy-note">
-        <i class="ti ti-lock" aria-hidden="true" style="font-size:13px;margin-right:4px"></i>
-        Your details will only be shared with the session host. By submitting you consent to this.
-      </div>
-      <div id="form-fields"></div>
-      <div class="error-msg" id="form-error"></div>
-      <button class="btn btn-primary btn-full" id="btn-submit" onclick="submitForm()">
-        Submit details
-      </button>
-      <button class="btn btn-ghost btn-full" id="btn-cancel-edit" onclick="cancelEdit()" style="margin-top:8px;display:none">
-        Cancel
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     SCREEN 5 — THANK YOU (participant)
-════════════════════════════════════════════ -->
-<div class="screen" id="screen-thanks">
-  <div class="center-body">
-    <div style="text-align:center;max-width:340px">
-      <div style="width:64px;height:64px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-        <i class="ti ti-check" aria-hidden="true" style="font-size:28px;color:#0F6E56"></i>
-      </div>
-      <div style="font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Thanks, your details have been received!</div>
-      <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px">Your information has been shared with the session host. You can close this page.</div>
-      <button class="btn btn-ghost btn-sm" onclick="editResponse()" style="display:inline-flex;align-items:center;gap:6px">
-        <i class="ti ti-pencil" aria-hidden="true" style="font-size:13px"></i> Edit response
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     SCREEN 6 — SESSION ENDED (host)
-════════════════════════════════════════════ -->
-<div class="screen" id="screen-ended">
-  <div class="center-body">
-    <div style="text-align:center;max-width:360px">
-      <div style="width:64px;height:64px;border-radius:50%;background:var(--brand-light);display:flex;align-items:center;justify-content:justify-content;margin:0 auto 20px;align-items:center;justify-content:center">
-        <i class="ti ti-address-book" aria-hidden="true" style="font-size:28px;color:var(--brand)"></i>
-      </div>
-      <div style="font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:6px">Session complete</div>
-      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:6px">Thank you for using the Bareel Contact Form!</div>
-      <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:28px" id="ended-count"></div>
-      <button class="btn btn-outline" onclick="exportCSV()" style="display:inline-flex;align-items:center;gap:8px">
-        <i class="ti ti-download" aria-hidden="true" style="font-size:14px"></i>
-        Export to CSV
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     ONBOARDING OVERLAY
-════════════════════════════════════════════ -->
-<div class="onboarding-backdrop" id="onboarding-overlay" style="display:none">
-  <div class="onboarding-card">
-    <div class="onboarding-logo-row">
-      <div class="logo">B</div>
-      <div style="font-size:14px;font-weight:600;color:var(--text-primary)">Bareel Contact Form</div>
-    </div>
-    <div class="onboarding-title">How it works</div>
-    <div class="onboarding-desc">Four simple steps — here's what to expect.</div>
-    <div class="onboarding-steps">
-      <div class="onboarding-step">
-        <div class="onboarding-step-icon"><i class="ti ti-settings" aria-hidden="true"></i></div>
-        <div class="onboarding-step-label">Create your contact form</div>
-      </div>
-      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
-      <div class="onboarding-step">
-        <div class="onboarding-step-icon"><i class="ti ti-share" aria-hidden="true"></i></div>
-        <div class="onboarding-step-label">Share your code</div>
-      </div>
-      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
-      <div class="onboarding-step">
-        <div class="onboarding-step-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
-        <div class="onboarding-step-label">Good to go!</div>
-      </div>
-      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
-      <div class="onboarding-step">
-        <div class="onboarding-step-icon"><i class="ti ti-download" aria-hidden="true"></i></div>
-        <div class="onboarding-step-label">Export responses if you'd like!</div>
-      </div>
-    </div>
-    <div class="onboarding-footer">
-      <label class="onboarding-dont-show">
-        <input type="checkbox" id="onboarding-dont-show" />
-        Don't show this again
-      </label>
-      <button class="btn btn-primary btn-sm" onclick="closeOnboarding()">Got it</button>
     </div>
   </div>
 </div>
 
 <script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
 const SUPABASE_URL = window.BAREEL_CONFIG.supabaseUrl;
 const SUPABASE_ANON_KEY = window.BAREEL_CONFIG.supabaseAnonKey;
+// ─────────────────────────────────────────────────────────────────────────
+
 const { createClient } = supabase;
 let db;
 try {
-  db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch(e) { console.warn('Bareel: Supabase init failed', e); }
+  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.warn('Bareel Q&A: Add your Supabase credentials.');
+  }
+} catch(e) { console.warn('Bareel Q&A: Supabase init failed', e); }
 
-const FIELD_LABELS = {
-  first_name: 'First name',
-  last_name:  'Last name',
-  email:      'Email address',
-  phone:      'Phone number',
-  message:    'Short message',
-};
-
+// ── STATE ─────────────────────────────────────────────────────────────────
 let state = {
   role: null,
   sessionId: null,
   sessionCode: null,
-  selectedFields: [],
-  responses: [],
+  participantId: null,
+  questions: [],
+  votedIds: new Set(),
   subscription: null,
   pollInterval: null,
-  responsesVisible: true,
 };
 
-// ── SCREEN ROUTER ──────────────────────────────────────────────────────────
+// ── SCREEN ROUTER ─────────────────────────────────────────────────────────
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  const logo   = document.getElementById('topbar-logo-link');
   const badge  = document.getElementById('topbar-badge');
   const liveEl = document.getElementById('topbar-live');
+  const logo   = document.getElementById('topbar-logo-link');
   badge.classList.add('hidden');
   liveEl.classList.add('hidden');
-  logo.href = '/';
   if (id === 'screen-active') {
-    badge.classList.remove('hidden');
+    if (state.role === 'host') {
+      badge.classList.remove('hidden');
+      logo.href = '/';
+    } else {
+      logo.href = '/';
+    }
     liveEl.classList.remove('hidden');
   }
+  if (id === 'screen-join') logo.href = '/';
+  if (id === 'screen-setup') logo.href = '/';
 }
 
-// ── FIELD TOGGLE ───────────────────────────────────────────────────────────
-function toggleField(el) {
-  el.classList.toggle('selected');
-}
 
-function getSelectedFields() {
-  return [...document.querySelectorAll('.field-option.selected')]
-    .map(el => el.dataset.field);
-}
+// ── QR CODE ───────────────────────────────────────────────────────────────
+let qrInstance = null;
 
-// ── QR CODE ────────────────────────────────────────────────────────────────
 function generateQR(code) {
   const container = document.getElementById('qr-code');
   if (!container) return;
   container.innerHTML = '';
-  new QRCode(container, {
-    text: `${window.location.origin}/join/?code=${code}`,
-    width: 140, height: 140,
-    colorDark: '#26215C', colorLight: '#EEEDFE',
+  const joinUrl = `${window.location.origin}/join/?code=${code}`;
+  qrInstance = new QRCode(container, {
+    text: joinUrl,
+    width: 140,
+    height: 140,
+    colorDark: '#26215C',
+    colorLight: '#EEEDFE',
     correctLevel: QRCode.CorrectLevel.M,
   });
 }
 
 function toggleQR() {
-  const wrap  = document.getElementById('qr-wrap');
+  const wrap = document.getElementById('qr-wrap');
   const label = document.getElementById('qr-toggle-label');
-  const vis   = wrap.classList.contains('visible');
-  wrap.classList.toggle('visible', !vis);
-  label.textContent = vis ? 'Show QR code' : 'Hide QR code';
+  const isVisible = wrap.classList.contains('visible');
+  wrap.classList.toggle('visible', !isVisible);
+  label.textContent = isVisible ? 'Show QR code' : 'Hide QR code';
 }
 
-// ── ONBOARDING ─────────────────────────────────────────────────────────────
+// ── ONBOARDING ────────────────────────────────────────────────────────────
 function initOnboarding() {
   const overlay = document.getElementById('onboarding-overlay');
   if (!overlay) return;
-  if (state.role === 'participant') { overlay.style.display = 'none'; return; }
-  overlay.style.display = localStorage.getItem('bareel_cf_hide_onboarding') === 'true' ? 'none' : 'flex';
+  if (window.location.search.includes('join') || window.location.pathname.includes('join')) {
+    overlay.style.display = 'none';
+    return;
+  }
+  const dontShow = localStorage.getItem('bareel_qa_hide_onboarding') === 'true';
+  overlay.style.display = dontShow ? 'none' : 'flex';
 }
 
 function closeOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
   const dontShow = document.getElementById('onboarding-dont-show').checked;
-  if (dontShow) localStorage.setItem('bareel_cf_hide_onboarding', 'true');
-  document.getElementById('onboarding-overlay').style.display = 'none';
+  if (dontShow) localStorage.setItem('bareel_qa_hide_onboarding', 'true');
+  overlay.style.display = 'none';
 }
 
-// ── LOCALSTORAGE — HOST ─────────────────────────────────────────────────────
-function saveHostSettings() {
-  const fields = getSelectedFields();
-  const responsesVisibleSetting = document.getElementById('responses-visible')?.checked ?? true;
-  localStorage.setItem('bareel_cf_host', JSON.stringify({
-    name: document.getElementById('session-name').value.trim(),
-    fields,
-    responsesVisible: responsesVisibleSetting,
-  }));
+// ── GENERATE CODE ─────────────────────────────────────────────────────────
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function loadHostSettings() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('bareel_cf_host'));
-    if (!saved) return;
-    if (saved.name) document.getElementById('session-name').value = saved.name;
-    if (saved.fields && saved.fields.length) {
-      document.querySelectorAll('.field-option').forEach(el => {
-        el.classList.toggle('selected', saved.fields.includes(el.dataset.field));
-      });
-    }
-    if (saved.responsesVisible === false) {
-      const cb = document.getElementById('responses-visible');
-      if (cb) cb.checked = false;
-    }
-  } catch(e) {}
-}
-
-// ── LOCALSTORAGE — PARTICIPANT ──────────────────────────────────────────────
-function saveParticipantDetails(data) {
-  localStorage.setItem('bareel_cf_participant', JSON.stringify(data));
-}
-
-function loadParticipantDetails() {
-  try {
-    return JSON.parse(localStorage.getItem('bareel_cf_participant')) || {};
-  } catch(e) { return {}; }
-}
-
-// ── CREATE SESSION ─────────────────────────────────────────────────────────
+// ── CREATE SESSION ────────────────────────────────────────────────────────
 async function createSession() {
-  const btn   = document.getElementById('btn-create');
-  const errEl = document.getElementById('setup-error');
+  const btn    = document.getElementById('btn-create');
+  const errEl  = document.getElementById('setup-error');
   errEl.classList.remove('visible');
 
   if (!db) { showError('setup-error', 'Supabase not configured.'); return; }
 
-  const name   = document.getElementById('session-name').value.trim();
-  const fields = getSelectedFields();
-
+  const name    = document.getElementById('session-name').value.trim();
+  const welcome = document.getElementById('session-welcome').value.trim();
   if (!name) { showError('setup-error', 'Please enter a session name.'); return; }
-  if (fields.length === 0) { showError('setup-error', 'Please select at least one field to collect.'); return; }
-
-  saveHostSettings();
 
   btn.innerHTML = '<div class="spinner"></div> Creating...';
   btn.disabled = true;
 
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code = generateCode();
 
-  const responsesVisible = document.getElementById('responses-visible').checked;
-
-  const { data, error } = await db.from('cf_sessions').insert({
-    code, name,
-    fields,
-    tool_type: 'contact',
-    status: 'open',
+  const { data, error } = await db.from('qa_sessions').insert({
+    code,
+    name,
+    welcome_message: welcome,
+    tool_type: 'qa',
+    participant_count: 0,
   }).select().single();
 
-  btn.innerHTML = 'Create contact form';
+  btn.innerHTML = 'Create Q&amp;A session';
   btn.disabled = false;
 
   if (error) {
-    console.error(error);
-    showError('setup-error', `Could not create session: ${error.message}`);
+    console.error('Supabase error:', error);
+    showError('setup-error', `Could not create session: ${error.message || 'Unknown error'}`);
     return;
   }
 
-  state.role = 'host';
+  state.role      = 'host';
   state.sessionId = data.id;
   state.sessionCode = code;
-  state.selectedFields = fields;
-  state.responsesVisible = responsesVisible;
 
-  renderActiveScreen(data);
+  // save to localStorage
+  saveQASettings(name, welcome);
+
+  renderActiveScreen(data, []);
   subscribeToSession(data.id);
 }
 
-// ── RENDER ACTIVE (host) ───────────────────────────────────────────────────
-function renderActiveScreen(session) {
-  document.getElementById('active-session-name').textContent = session.name;
-  document.getElementById('topbar-badge').textContent = 'Host';
-
-  // render code digits
-  const digitsEl = document.getElementById('active-code-digits');
-  digitsEl.innerHTML = '';
-  state.sessionCode.split('').forEach(d => {
-    const div = document.createElement('div');
-    div.className = 'code-digit';
-    div.textContent = d;
-    digitsEl.appendChild(div);
-  });
-
-  generateQR(state.sessionCode);
-
-  // render response table header
-  const cols = state.selectedFields.filter(f => f !== 'message');
-  const hdr  = document.getElementById('resp-header-row');
-  hdr.style.gridTemplateColumns = `repeat(${cols.length}, 1fr) 100px`;
-  hdr.innerHTML = cols.map(f => `<span>${FIELD_LABELS[f]}</span>`).join('') + '<span>Submitted</span>';
-
-  if (state.selectedFields.includes('message')) {
-    document.getElementById('message-note').style.display = 'block';
-  }
-
-  showScreen('screen-active');
-}
-
-// ── RENDER RESPONSES ───────────────────────────────────────────────────────
-function renderResponses() {
-  const list   = document.getElementById('responses-list');
-  const count  = document.getElementById('resp-count-label');
-  const topbar = document.getElementById('topbar-resp-count');
-  const cols   = state.selectedFields.filter(f => f !== 'message');
-  const n      = state.responses.length;
-
-  count.textContent  = `${n} received`;
-  topbar.textContent = n === 1 ? '1 response' : `${n} responses`;
-
-  if (n === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:var(--text-tertiary)">Waiting for responses...</div>';
-    return;
-  }
-
-  if (!state.responsesVisible) {
-    list.innerHTML = `<div style="text-align:center;padding:24px;font-size:13px;color:var(--text-secondary)"><i class="ti ti-eye-off" style="font-size:20px;display:block;margin-bottom:8px;color:var(--text-tertiary)"></i>Response details hidden — ${n} response${n !== 1 ? 's' : ''} received.<br><span style="font-size:12px;color:var(--text-tertiary)">Details visible in CSV export.</span></div>`;
-    return;
-  }
-
-  list.innerHTML = state.responses.map(r => {
-    const cells = cols.map(f => `<span>${escapeHtml(r[f] || '—')}</span>`).join('');
-    const time  = timeAgo(r.created_at);
-    return `<div class="resp-row" style="grid-template-columns:repeat(${cols.length},1fr) 100px">${cells}<span class="resp-time">${time}</span></div>`;
-  }).join('');
-}
-
-// ── JOIN SESSION ───────────────────────────────────────────────────────────
+// ── JOIN SESSION ──────────────────────────────────────────────────────────
 async function joinSession() {
   const btn   = document.getElementById('btn-join');
   const errEl = document.getElementById('join-error');
@@ -862,178 +707,234 @@ async function joinSession() {
   btn.innerHTML = '<div class="spinner"></div>';
   btn.disabled = true;
 
-  const { data: session, error } = await db.from('cf_sessions').select('*').eq('code', code).single();
+  const { data: session, error } = await db.from('qa_sessions').select('*').eq('code', code).single();
 
-  btn.innerHTML = 'Find session';
+  btn.innerHTML = 'Join Q&amp;A';
   btn.disabled = false;
 
   if (error || !session) { showError('join-error', 'Session not found. Check the code and try again.'); return; }
-  if (session.status === 'ended') { showError('join-error', 'This session has ended.'); return; }
 
-  state.role = 'participant';
+  // increment participant count atomically
+  await db.rpc('increment_participant_count', { session_id: session.id });
+
+  state.role      = 'participant';
   state.sessionId = session.id;
   state.sessionCode = code;
-  state.selectedFields = session.fields;
+  state.participantId = 'anon_' + Math.random().toString(36).slice(2, 9);
 
-  renderParticipantForm(session);
+  // load existing questions
+  const { data: questions } = await db.from('qa_questions').select('*').eq('session_id', session.id).order('votes', { ascending: false });
+
+  renderActiveScreen(session, questions || []);
+  subscribeToSession(session.id);
 }
 
-// ── RENDER PARTICIPANT FORM ────────────────────────────────────────────────
-function renderParticipantForm(session) {
-  document.getElementById('form-session-name').textContent = session.name;
+// ── RENDER ACTIVE SCREEN ──────────────────────────────────────────────────
+function renderActiveScreen(session, questions) {
+  document.getElementById('active-session-name').textContent = session.name;
+  document.getElementById('active-session-welcome').textContent = session.welcome_message || '';
+  document.getElementById('active-session-welcome').style.display = session.welcome_message ? 'block' : 'none';
+  document.getElementById('active-code-pill').textContent = state.sessionCode;
 
-  const saved = loadParticipantDetails();
-  const container = document.getElementById('form-fields');
-  container.innerHTML = '';
-
-  session.fields.forEach(field => {
-    const div = document.createElement('div');
-    div.className = 'field';
-
-    if (field === 'message') {
-      div.innerHTML = `
-        <div class="char-row">
-          <label for="field_message" style="margin-bottom:0">Short message</label>
-          <span class="char-count" id="char-count">0 / 200</span>
-        </div>
-        <textarea id="field_message" placeholder="Anything you'd like to add..." maxlength="200" rows="3"></textarea>`;
-      container.appendChild(div);
-      setTimeout(() => {
-        const ta = document.getElementById('field_message');
-        const cc = document.getElementById('char-count');
-        ta.addEventListener('input', () => {
-          cc.textContent = `${ta.value.length} / 200`;
-          cc.classList.toggle('over', ta.value.length > 200);
-        });
-      }, 0);
-    } else {
-      const type = field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text';
-      const val  = saved[field] || '';
-      div.innerHTML = `
-        <label for="field_${field}">${FIELD_LABELS[field]}</label>
-        <input type="${type}" id="field_${field}" placeholder="${FIELD_LABELS[field]}" value="${escapeHtml(val)}" />`;
-      container.appendChild(div);
+  // host-only controls
+  const exportBtn = document.getElementById('btn-export');
+  const submitBox = document.getElementById('submit-box');
+  const qrSection = document.getElementById('qr-section');
+  if (state.role === 'host') {
+    exportBtn.classList.remove('hidden');
+    submitBox.classList.add('hidden');
+    if (qrSection) {
+      qrSection.classList.remove('hidden');
+      generateQR(state.sessionCode);
     }
-  });
+  } else {
+    exportBtn.classList.add('hidden');
+    submitBox.classList.remove('hidden');
+    if (qrSection) qrSection.classList.add('hidden');
+  }
 
-  showScreen('screen-form');
+  state.questions = questions || [];
+  renderQuestions();
+  updateParticipantCount(session.participant_count || 0);
+  showScreen('screen-active');
 }
 
-// ── SUBMIT FORM ────────────────────────────────────────────────────────────
-async function submitForm() {
+// ── RENDER QUESTIONS ──────────────────────────────────────────────────────
+let lastRenderKey = '';
+
+function renderQuestions() {
+  const list  = document.getElementById('questions-list');
+  const label = document.getElementById('questions-label');
+  const qs    = [...state.questions].sort((a, b) => b.votes - a.votes);
+
+  // build a fingerprint to detect if anything changed
+  const renderKey = qs.map(q => `${q.id}:${q.votes}:${state.votedIds.has(q.id)}`).join('|');
+  if (renderKey === lastRenderKey) return;
+  lastRenderKey = renderKey;
+
+  label.textContent = `Questions (${qs.length})`;
+
+  if (qs.length === 0) {
+    list.innerHTML = `<div class="empty-state"><i class="ti ti-message-question" aria-hidden="true"></i>No questions yet — be the first to ask!</div>`;
+    return;
+  }
+
+  const maxVotes = qs[0]?.votes || 0;
+  list.innerHTML = qs.map((q, i) => {
+    const isTop    = i === 0 && maxVotes > 0;
+    const hasVoted = state.votedIds.has(q.id);
+    const isOwn    = q.participant_id === state.participantId;
+    const canVote  = state.role === 'participant' && !isOwn;
+    return `
+      <div class="q-card${isTop ? ' top-question' : ''}">
+        <div class="upvote-col">
+          <button class="upvote-btn${hasVoted ? ' voted' : ''}"
+            onclick="upvote('${q.id}')"
+            ${!canVote ? 'disabled' : ''}
+            aria-label="Upvote this question">
+            <i class="ti ti-chevron-up" aria-hidden="true"></i>
+          </button>
+          <span class="upvote-count">${q.votes}</span>
+        </div>
+        <div class="q-body">
+          <div class="q-text">${escapeHtml(q.text)}${isTop ? ' <span class="top-badge">Top</span>' : ''}</div>
+          <div class="q-meta"><span>${timeAgo(q.created_at)}</span></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── SUBMIT QUESTION ───────────────────────────────────────────────────────
+async function submitQuestion() {
   const btn   = document.getElementById('btn-submit');
-  const errEl = document.getElementById('form-error');
-  errEl.classList.remove('visible');
+  const input = document.getElementById('question-input');
+  const text  = input.value.trim();
 
-  const responseData = {};
-  let valid = true;
+  if (!text) return;
+  if (text.length > 200) return;
 
-  state.selectedFields.forEach(field => {
-    const el = document.getElementById(`field_${field}`);
-    if (!el) return;
-    const val = el.value.trim();
-    if (!val && field !== 'message') { valid = false; }
-    responseData[field] = val;
-  });
-
-  if (!valid) { showError('form-error', 'Please fill in all required fields.'); return; }
-
-  btn.innerHTML = '<div class="spinner"></div> Submitting...';
   btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
 
-  const { error } = await db.from('cf_responses').insert({
+  const { data, error } = await db.from('qa_questions').insert({
     session_id: state.sessionId,
-    ...responseData,
-  });
+    text,
+    votes: 0,
+    participant_id: state.participantId,
+  }).select().single();
 
-  btn.innerHTML = 'Submit details';
   btn.disabled = false;
+  btn.innerHTML = 'Submit question';
 
-  if (error) { console.error(error); showError('form-error', 'Could not submit. Please try again.'); return; }
+  if (error) { console.error(error); return; }
 
-  // save to localStorage (not message field)
-  const toSave = {};
-  state.selectedFields.filter(f => f !== 'message').forEach(f => { toSave[f] = responseData[f]; });
-  saveParticipantDetails(toSave);
+  input.value = '';
+  document.getElementById('char-count').textContent = '0 / 200';
 
-  showScreen('screen-thanks');
+  // add to local state immediately
+  state.questions.push(data);
+  renderQuestions();
 }
 
-// ── END SESSION ────────────────────────────────────────────────────────────
-async function endSession() {
-  if (!confirm('End this session? Participants will no longer be able to submit.')) return;
-  await db.from('cf_sessions').update({ status: 'ended' }).eq('id', state.sessionId);
-  if (state.pollInterval) clearInterval(state.pollInterval);
-  if (state.subscription) state.subscription.unsubscribe();
-  document.getElementById('ended-count').textContent =
-    `${state.responses.length} response${state.responses.length !== 1 ? 's' : ''} collected`;
-  showScreen('screen-ended');
+// ── UPVOTE ────────────────────────────────────────────────────────────────
+async function upvote(questionId) {
+  if (state.votedIds.has(questionId)) return;
+  state.votedIds.add(questionId);
+
+  // optimistic update
+  const q = state.questions.find(q => q.id === questionId);
+  if (q) { q.votes++; renderQuestions(); }
+
+  await db.rpc('increment_vote', { question_id: questionId });
 }
 
-// ── EXPORT CSV ─────────────────────────────────────────────────────────────
+// ── EXPORT CSV ────────────────────────────────────────────────────────────
 function exportCSV() {
-  const fields  = state.selectedFields;
-  const headers = fields.map(f => FIELD_LABELS[f]);
-  const rows    = [['Submitted at', ...headers]];
-  state.responses.forEach(r => {
-    rows.push([r.created_at, ...fields.map(f => `"${(r[f] || '').replace(/"/g, '""')}"`  )]);
-  });
-  const csv  = rows.map(r => r.join(',')).join('\n');
+  const qs = [...state.questions].sort((a, b) => b.votes - a.votes);
+  const rows = [['Question', 'Votes', 'Submitted at']];
+  qs.forEach(q => rows.push([`"${q.text.replace(/"/g, '""')}"`, q.votes, q.created_at]));
+  const csv = rows.map(r => r.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  a.download = `bareel-contact-${state.sessionCode}.csv`;
+  a.download = `bareel-qa-${state.sessionCode}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// ── REALTIME ───────────────────────────────────────────────────────────────
+// ── PARTICIPANT COUNT ─────────────────────────────────────────────────────
+function updateParticipantCount(count) {
+  document.getElementById('topbar-participant-count').textContent =
+    count === 1 ? '1 participant' : `${count} participants`;
+  document.getElementById('active-participant-count').textContent =
+    count === 1 ? '1 participant' : `${count} participants`;
+}
+
+// ── REALTIME SUBSCRIPTION ─────────────────────────────────────────────────
 function subscribeToSession(sessionId) {
   if (state.subscription) state.subscription.unsubscribe();
 
-  state.subscription = db.channel(`cf-${sessionId}`)
-    .on('postgres_changes', {
-      event: 'INSERT', schema: 'public', table: 'cf_responses',
-      filter: `session_id=eq.${sessionId}`
-    }, payload => {
-      const exists = state.responses.find(r => r.id === payload.new.id);
-      if (!exists) { state.responses.push(payload.new); renderResponses(); }
-    })
+  state.subscription = db.channel(`qa-${sessionId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'qa_questions', filter: `session_id=eq.${sessionId}` },
+      payload => {
+        const exists = state.questions.find(q => q.id === payload.new.id);
+        if (!exists) { state.questions.push(payload.new); renderQuestions(); }
+      })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'qa_questions', filter: `session_id=eq.${sessionId}` },
+      payload => {
+        const idx = state.questions.findIndex(q => q.id === payload.new.id);
+        if (idx !== -1) { state.questions[idx] = payload.new; renderQuestions(); }
+      })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'qa_sessions', filter: `id=eq.${sessionId}` },
+      payload => { updateParticipantCount(payload.new.participant_count || 0); })
     .subscribe();
 
+  // polling fallback
   if (state.pollInterval) clearInterval(state.pollInterval);
   state.pollInterval = setInterval(async () => {
     if (!state.sessionId) return;
-    const { data } = await db.from('cf_responses').select('*').eq('session_id', sessionId).order('created_at', { ascending: true });
-    if (data) {
-      const prevCount = state.responses.length;
-      data.forEach(r => { if (!state.responses.find(e => e.id === r.id)) state.responses.push(r); });
-      if (state.responses.length !== prevCount) renderResponses();
+
+    // poll questions
+    const { data: qs } = await db.from('qa_questions').select('*').eq('session_id', sessionId).order('votes', { ascending: false });
+    if (qs) {
+      let changed = false;
+      qs.forEach(q => {
+        const existing = state.questions.find(e => e.id === q.id);
+        if (!existing) { state.questions.push(q); changed = true; }
+        else if (q.votes !== existing.votes) { existing.votes = q.votes; changed = true; }
+      });
+      if (changed) renderQuestions();
     }
+
+    // poll session for participant count
+    const { data: sess } = await db.from('qa_sessions').select('participant_count').eq('id', sessionId).single();
+    if (sess) updateParticipantCount(sess.participant_count || 0);
   }, 2000);
 }
 
-// ── BUILD CODE INPUTS ──────────────────────────────────────────────────────
+// ── BUILD CODE INPUTS ─────────────────────────────────────────────────────
 function buildCodeInputs() {
   const wrap = document.getElementById('code-input-boxes');
   if (!wrap) return;
   wrap.innerHTML = '';
   for (let i = 0; i < 6; i++) {
     const inp = document.createElement('input');
-    inp.type = 'text'; inp.maxLength = 1;
+    inp.type = 'text';
+    inp.maxLength = 1;
     inp.className = 'code-input-box';
-    inp.inputMode = 'numeric'; inp.pattern = '[0-9]*';
+    inp.inputMode = 'numeric';
+    inp.pattern = '[0-9]*';
     inp.addEventListener('input', e => {
       e.target.value = e.target.value.replace(/\D/g, '');
-      if (e.target.value && i < 5) wrap.children[i+1].focus();
+      if (e.target.value && i < 5) wrap.children[i + 1].focus();
     });
     inp.addEventListener('keydown', e => {
-      if (e.key === 'Backspace' && !e.target.value && i > 0) wrap.children[i-1].focus();
+      if (e.key === 'Backspace' && !e.target.value && i > 0) wrap.children[i - 1].focus();
     });
     inp.addEventListener('paste', e => {
       e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
       text.split('').forEach((ch, idx) => { if (wrap.children[idx]) wrap.children[idx].value = ch; });
       const next = Math.min(text.length, 5);
       if (wrap.children[next]) wrap.children[next].focus();
@@ -1042,42 +943,44 @@ function buildCodeInputs() {
   }
 }
 
-// ── EDIT RESPONSE ─────────────────────────────────────────────────────────
-let isEditing = false;
-
-function editResponse() {
-  isEditing = true;
-  // re-render form with saved details
-  const saved = loadParticipantDetails();
-  // also restore message if we have it in state
-  const container = document.getElementById('form-fields');
-  // pre-fill from saved
-  state.selectedFields.forEach(field => {
-    const el = document.getElementById(`field_${field}`);
-    if (el && saved[field]) el.value = saved[field];
+// ── CHAR COUNTER ──────────────────────────────────────────────────────────
+function initCharCounter() {
+  const input = document.getElementById('question-input');
+  const count = document.getElementById('char-count');
+  if (!input || !count) return;
+  input.addEventListener('input', () => {
+    const len = input.value.length;
+    count.textContent = `${len} / 200`;
+    count.classList.toggle('over', len > 200);
   });
-  // update button labels
-  document.getElementById('btn-submit').textContent = 'Save changes';
-  document.getElementById('btn-cancel-edit').style.display = 'block';
-  showScreen('screen-form');
 }
 
-function cancelEdit() {
-  isEditing = false;
-  document.getElementById('btn-submit').innerHTML = 'Submit details';
-  document.getElementById('btn-cancel-edit').style.display = 'none';
-  showScreen('screen-thanks');
+
+// ── LOCALSTORAGE ──────────────────────────────────────────────────────────
+function saveQASettings(name, welcome) {
+  try {
+    localStorage.setItem('bareel_qa_settings', JSON.stringify({ name, welcome }));
+  } catch(e) {}
 }
 
-// ── UTILITIES ──────────────────────────────────────────────────────────────
+function loadQASettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bareel_qa_settings'));
+    if (!saved) return;
+    if (saved.name) document.getElementById('session-name').value = saved.name;
+    if (saved.welcome) document.getElementById('session-welcome').value = saved.welcome;
+  } catch(e) {}
+}
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────
 function showError(id, msg) {
   const el = document.getElementById(id);
-  el.textContent = msg; el.classList.add('visible');
+  el.textContent = msg;
+  el.classList.add('visible');
 }
 
 function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function timeAgo(dateStr) {
@@ -1087,31 +990,81 @@ function timeAgo(dateStr) {
   return `${Math.floor(secs / 3600)}h ago`;
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
+  initCharCounter();
+  initOnboarding();
 
-  const urlParams     = new URLSearchParams(window.location.search);
+  if (!window.location.search.includes('join') && !window.location.pathname.includes('join')) {
+    loadQASettings();
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
   const prefilledCode = urlParams.get('code');
-  const isJoin        = window.location.search.includes('join') || window.location.pathname.includes('join');
 
-  if (isJoin) {
+  if (window.location.search.includes('join') || window.location.pathname.includes('join')) {
     state.role = 'participant';
-    initOnboarding(); // ensures overlay stays hidden for participants
-    showScreen('screen-join');
     if (prefilledCode) {
+      // code pre-filled from central join page — skip join screen, go straight in
       const boxes = document.querySelectorAll('.code-input-box');
       prefilledCode.split('').forEach((ch, i) => { if (boxes[i]) boxes[i].value = ch; });
       joinSession();
+    } else {
+      showScreen('screen-join');
     }
   } else {
     state.role = 'host';
     document.getElementById('topbar-badge').classList.remove('hidden');
-    loadHostSettings();
-    initOnboarding();
     showScreen('screen-setup');
   }
 });
 </script>
+
+<!-- ═══════════════════════════════════════════
+     ONBOARDING OVERLAY
+════════════════════════════════════════════ -->
+<div class="onboarding-backdrop" id="onboarding-overlay">
+  <div class="onboarding-card">
+    <div class="onboarding-logo-row">
+      <div class="logo">B</div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary)">Bareel Q&amp;A</div>
+      </div>
+    </div>
+    <div class="onboarding-title">How it works</div>
+    <div class="onboarding-desc">Four simple steps — here's what to expect.</div>
+
+    <div class="onboarding-steps">
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-settings" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Create your Q&amp;A session</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-share" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Share your code</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Good to go!</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-download" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Export questions if you'd like!</div>
+      </div>
+    </div>
+
+    <div class="onboarding-footer">
+      <label class="onboarding-dont-show">
+        <input type="checkbox" id="onboarding-dont-show" />
+        Don't show this again
+      </label>
+      <button class="btn btn-primary btn-sm" onclick="closeOnboarding()">Got it</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

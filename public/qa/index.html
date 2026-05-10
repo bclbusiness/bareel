@@ -588,11 +588,11 @@ function showScreen(id) {
       badge.classList.remove('hidden');
       logo.href = '/';
     } else {
-      logo.href = '/?join';
+      logo.href = '/';
     }
     liveEl.classList.remove('hidden');
   }
-  if (id === 'screen-join') logo.href = '/?join';
+  if (id === 'screen-join') logo.href = '/';
   if (id === 'screen-setup') logo.href = '/';
 }
 

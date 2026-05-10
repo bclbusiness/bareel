@@ -1007,7 +1007,7 @@
     </div>
 
     <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-secondary)">
-      Participants? Send them to <span style="color:var(--brand);font-weight:500">bareel.vercel.app/?join</span>
+      Participants? Send them to <span style="color:var(--brand);font-weight:500">bareel.app</span>
     </p>
   </div>
 </div>
@@ -1132,7 +1132,7 @@
         <div class="code-display">
           <div class="section-label">Share this code to join</div>
           <div class="code-digits" id="waiting-code-digits"></div>
-          <div class="code-url">bareel.vercel.app/?join</div>
+          <div class="code-url">bareel.app</div>
           <div class="qr-section">
             <button class="qr-toggle" onclick="toggleQR()">
               <i class="ti ti-qrcode" aria-hidden="true"></i>
@@ -1196,7 +1196,7 @@
           Join stand up
         </button>
 
-        <p class="join-url">Visit <span>bareel.vercel.app/?join</span> to get here</p>
+        <p class="join-url">Visit <span>bareel.app</span> to get here</p>
       </div>
     </div>
 
@@ -1411,7 +1411,7 @@ function showScreen(id) {
   // update logo link based on role
   const logoLink = document.getElementById('topbar-logo-link');
   if (logoLink) {
-    logoLink.href = state.role === 'participant' ? '/?join' : '/';
+    logoLink.href = '/';
   }
 
   const badge   = document.getElementById('topbar-badge');

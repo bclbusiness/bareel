@@ -554,7 +554,7 @@
 <!-- ═══════════════════════════════════════════
      ONBOARDING OVERLAY
 ════════════════════════════════════════════ -->
-<div class="onboarding-backdrop" id="onboarding-overlay">
+<div class="onboarding-backdrop" id="onboarding-overlay" style="display:none">
   <div class="onboarding-card">
     <div class="onboarding-logo-row">
       <div class="logo">B</div>
@@ -1036,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (isJoin) {
     state.role = 'participant';
+    initOnboarding(); // ensures overlay stays hidden for participants
     showScreen('screen-join');
     if (prefilledCode) {
       const boxes = document.querySelectorAll('.code-input-box');

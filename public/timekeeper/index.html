@@ -306,8 +306,16 @@
 
       <!-- Simple mode duration -->
       <div class="field" id="field-simple">
-        <label>Duration</label>
-        <input type="text" id="simple-duration" placeholder="e.g. 25 mins or 1:30:00" />
+        <label>Duration <span style="font-size:11px;color:var(--text-tertiary);font-weight:400">— max 4 hours</span></label>
+        <div class="phase-time-wrap" style="justify-content:flex-start;gap:8px">
+          <select id="simple-h" onchange="updateSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option></select>
+          <span class="phase-time-sep">h</span>
+          <select id="simple-m" onchange="updateSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
+          <span class="phase-time-sep">m</span>
+          <select id="simple-s" onchange="updateSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
+          <span class="phase-time-sep">s</span>
+        </div>
+        <div id="simple-total-pill" style="margin-top:8px"></div>
       </div>
 
       <!-- Phased mode phases -->
@@ -524,8 +532,16 @@
       </div>
     </div>
     <div class="field" id="edit-field-simple">
-      <label>Duration</label>
-      <input type="text" id="edit-simple-duration" placeholder="e.g. 25 mins or 1:30:00" />
+      <label>Duration <span style="font-size:11px;color:var(--text-tertiary);font-weight:400">— max 4 hours</span></label>
+      <div class="phase-time-wrap" style="justify-content:flex-start;gap:8px">
+        <select id="edit-simple-h" onchange="updateEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option></select>
+        <span class="phase-time-sep">h</span>
+        <select id="edit-simple-m" onchange="updateEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
+        <span class="phase-time-sep">m</span>
+        <select id="edit-simple-s" onchange="updateEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
+        <span class="phase-time-sep">s</span>
+      </div>
+      <div id="edit-simple-total-pill" style="margin-top:8px"></div>
     </div>
     <div class="field hidden" id="edit-field-phased">
       <label>Phases</label>
@@ -639,6 +655,43 @@ function setEditMode(mode) {
 }
 
 // ── PHASE MANAGEMENT ───────────────────────────────────────────────────────
+function getSimpleSecs(prefix) {
+  const h = parseInt(document.getElementById(`${prefix}-h`)?.value || 0);
+  const m = parseInt(document.getElementById(`${prefix}-m`)?.value || 0);
+  const s = parseInt(document.getElementById(`${prefix}-s`)?.value || 0);
+  return h * 3600 + m * 60 + s;
+}
+
+function setSimpleSecs(prefix, secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  const hEl = document.getElementById(`${prefix}-h`);
+  const mEl = document.getElementById(`${prefix}-m`);
+  const sEl = document.getElementById(`${prefix}-s`);
+  if (hEl) hEl.value = h;
+  if (mEl) mEl.value = m;
+  if (sEl) sEl.value = s;
+}
+
+function updateSimpleTotal() {
+  const secs = getSimpleSecs('simple');
+  const pill = document.getElementById('simple-total-pill');
+  if (!pill) return;
+  pill.innerHTML = secs > 0
+    ? `<div class="total-pill${secs > 4*3600 ? ' error' : ''}"><i class="ti ti-clock" aria-hidden="true" style="font-size:11px"></i>${formatDuration(secs)}${secs > 4*3600 ? ' — max 4 hours' : ''}</div>`
+    : '';
+}
+
+function updateEditSimpleTotal() {
+  const secs = getSimpleSecs('edit-simple');
+  const pill = document.getElementById('edit-simple-total-pill');
+  if (!pill) return;
+  pill.innerHTML = secs > 0
+    ? `<div class="total-pill"><i class="ti ti-clock" aria-hidden="true" style="font-size:11px"></i>${formatDuration(secs)}</div>`
+    : '';
+}
+
 function makeTimeOptions(max) {
   let opts = '<option value="0">00</option>';
   for (let i = 1; i <= max; i++) opts += `<option value="${i}">${String(i).padStart(2,'0')}</option>`;
@@ -774,8 +827,9 @@ async function createSession() {
 
   let phases = [];
   if (currentMode === 'simple') {
-    const dur = parseDuration(document.getElementById('simple-duration').value.trim());
-    if (!dur) { showError('setup-error', 'Please enter a valid duration (e.g. 25 mins or 1:30:00).'); return; }
+    const dur = getSimpleSecs('simple');
+    if (!dur) { showError('setup-error', 'Please set a duration for the timer.'); return; }
+    if (dur > 4 * 3600) { showError('setup-error', 'Total duration cannot exceed 4 hours.'); return; }
     phases = [{ name, seconds: dur }];
   } else {
     const rows = document.querySelectorAll('#phases-container .phase-row');
@@ -1136,7 +1190,8 @@ function openEditModal() {
   setEditMode(state.mode);
 
   if (state.mode === 'simple') {
-    document.getElementById('edit-simple-duration').value = formatDuration(state.phases[0]?.seconds || 0);
+    setSimpleSecs('edit-simple', state.phases[0]?.seconds || 0);
+    updateEditSimpleTotal();
   } else {
     const container = document.getElementById('edit-phases-container');
     container.innerHTML = '';
@@ -1162,8 +1217,9 @@ async function saveEdit() {
   let phases = [];
 
   if (editMode === 'simple') {
-    const dur = parseDuration(document.getElementById('edit-simple-duration').value.trim());
-    if (!dur) { showError('edit-error', 'Please enter a valid duration.'); return; }
+    const dur = getSimpleSecs('edit-simple');
+    if (!dur) { showError('edit-error', 'Please set a duration for the timer.'); return; }
+    if (dur > 4 * 3600) { showError('edit-error', 'Total duration cannot exceed 4 hours.'); return; }
     phases = [{ name, seconds: dur }];
   } else {
     const rows = document.querySelectorAll('#edit-phases-container .phase-row');
@@ -1318,7 +1374,8 @@ function loadHostSettings() {
     if (saved.name) document.getElementById('session-name').value = saved.name;
     if (saved.mode) setMode(saved.mode);
     if (saved.mode === 'simple' && saved.phases?.[0]) {
-      document.getElementById('simple-duration').value = formatDuration(saved.phases[0].seconds);
+      setSimpleSecs('simple', saved.phases[0].seconds);
+      updateSimpleTotal();
     }
     if (saved.mode === 'phased' && saved.phases?.length) {
       saved.phases.forEach(p => addPhase(p.name, p.seconds));

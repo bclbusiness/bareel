@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/config.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bareel Timekeeper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #534AB7;
+      --brand-light: #EEEDFE;
+      --brand-dark: #26215C;
+      --brand-mid: #7F77DD;
+      --green: #1D9E75;
+      --green-light: #E1F5EE;
+      --red: #C0392B;
+      --amber: #854F0B;
+      --amber-light: #FAEEDA;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b6b8a;
+      --text-tertiary: #9999b8;
+      --bg: #f7f7fc;
+      --bg-card: #ffffff;
+      --border: #e4e4f0;
+      --border-light: #f0f0f8;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --shadow: 0 2px 16px rgba(83,74,183,0.08);
+      --shadow-lg: 0 8px 40px rgba(83,74,183,0.14);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex; align-items: center; gap: 10px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { width:32px; height:32px; background:var(--brand); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:white; flex-shrink:0; text-decoration:none; }
+    .brand-name { font-size:15px; font-weight:600; color:var(--text-primary); }
+    .brand-sub  { font-size:13px; color:var(--text-secondary); margin-left:2px; }
+    .badge { font-size:11px; font-weight:500; padding:3px 10px; border-radius:20px; background:var(--brand-light); color:var(--brand-dark); margin-left:auto; }
+
+    /* ── SCREENS ── */
+    .screen { display:none; }
+    .screen.active { display:block; }
+    #screen-join { min-height:calc(100vh - 56px); flex-direction:column; }
+    #screen-join.active { display:flex; }
+
+    /* ── CONTAINERS ── */
+    .container { max-width:680px; margin:0 auto; padding:32px 20px; }
+
+    /* ── TYPOGRAPHY ── */
+    h1 { font-size:22px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
+    .subtitle { font-size:14px; color:var(--text-secondary); margin-bottom:28px; }
+    .section-label { font-size:11px; font-weight:600; letter-spacing:0.6px; color:var(--text-tertiary); text-transform:uppercase; margin-bottom:8px; }
+
+    /* ── CARDS ── */
+    .card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; box-shadow:var(--shadow); }
+
+    /* ── FORM ── */
+    .field { margin-bottom:20px; }
+    label { display:block; font-size:12px; font-weight:500; color:var(--text-secondary); margin-bottom:6px; letter-spacing:0.2px; }
+    input[type="text"], input[type="number"] {
+      width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm);
+      padding:10px 14px; font-size:14px; font-family:'DM Sans',sans-serif;
+      color:var(--text-primary); transition:border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus { outline:none; border-color:var(--brand-mid); box-shadow:0 0 0 3px rgba(127,119,221,0.15); }
+    hr.divider { border:none; border-top:1px solid var(--border); margin:24px 0; }
+
+    /* ── MODE SELECTOR ── */
+    .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px; }
+    .mode-card {
+      border:1px solid var(--border); border-radius:var(--radius-lg);
+      padding:16px; cursor:pointer; text-align:center;
+      transition:all 0.15s; background:var(--bg);
+    }
+    .mode-card:hover { border-color:var(--brand-mid); }
+    .mode-card.selected { background:var(--brand-dark); border-color:var(--brand-dark); }
+    .mode-icon { font-size:24px; margin-bottom:8px; color:var(--text-tertiary); }
+    .mode-card.selected .mode-icon { color:#AFA9EC; }
+    .mode-name { font-size:13px; font-weight:500; color:var(--text-secondary); }
+    .mode-card.selected .mode-name { color:white; }
+    .mode-desc { font-size:11px; color:var(--text-tertiary); margin-top:3px; }
+    .mode-card.selected .mode-desc { color:var(--brand-mid); }
+
+    /* ── PHASE ROWS ── */
+    .phase-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .phase-row input:first-of-type { flex:1; }
+    .phase-time-input { width:100px; flex-shrink:0; }
+    .btn-remove { width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:16px; flex-shrink:0; transition:all 0.15s; }
+    .btn-remove:hover { background:#fee; color:var(--red); border-color:#fcc; }
+    .add-link { font-size:13px; color:var(--brand); cursor:pointer; background:none; border:none; padding:4px 0; font-family:'DM Sans',sans-serif; }
+    .add-link:hover { text-decoration:underline; }
+    .total-pill { display:inline-flex; align-items:center; gap:5px; background:var(--brand-light); border:1px solid #cccaf5; border-radius:20px; padding:4px 12px; font-size:12px; color:var(--brand-dark); font-weight:500; margin-top:10px; }
+    .total-pill.error { background:#fee8e8; border-color:#fcc; color:var(--red); }
+
+    /* ── BUTTONS ── */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 24px; border-radius:var(--radius-sm); font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; border:none; transition:all 0.15s; }
+    .btn-primary { background:var(--brand); color:white; box-shadow:0 2px 8px rgba(83,74,183,0.3); }
+    .btn-primary:hover { background:var(--brand-dark); }
+    .btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+    .btn-outline { background:none; color:var(--brand); border:1px solid #afa9ec; }
+    .btn-outline:hover { background:var(--brand-light); }
+    .btn-ghost { background:none; color:var(--text-secondary); border:1px solid var(--border); }
+    .btn-ghost:hover { border-color:var(--brand-mid); color:var(--brand); }
+    .btn-full { width:100%; }
+    .btn-sm { padding:7px 14px; font-size:13px; }
+    .btn-danger { background:none; color:var(--red); border:1px solid #fcc; }
+    .btn-danger:hover { background:#fee8e8; }
+
+    /* ── ERROR ── */
+    .error-msg { font-size:13px; color:var(--red); background:#fee8e8; border-radius:var(--radius-sm); padding:8px 12px; margin-top:8px; display:none; }
+    .error-msg.visible { display:block; }
+
+    /* ── SPINNER ── */
+    .spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; flex-shrink:0; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── ACTIVE SESSION LAYOUT ── */
+    #screen-active .inner { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 56px); }
+    @media (max-width:640px) { #screen-active .inner { grid-template-columns:1fr; } }
+
+    /* ── PHASE PANEL ── */
+    .phase-panel {
+      border-right:1px solid var(--border);
+      padding:24px 16px;
+      display:flex; flex-direction:column; gap:0;
+    }
+    .phase-panel-title { font-size:10px; font-weight:600; letter-spacing:0.6px; color:var(--text-tertiary); text-transform:uppercase; margin-bottom:14px; }
+    .phase-item { display:flex; align-items:center; gap:8px; padding:9px 10px; border-radius:var(--radius-sm); margin-bottom:4px; font-size:13px; transition:all 0.2s; }
+    .phase-item.done { color:var(--text-tertiary); }
+    .phase-item.done .phase-dot { background:var(--border); }
+    .phase-item.active { background:var(--brand-light); color:var(--brand-dark); font-weight:500; }
+    .phase-item.active .phase-dot { background:var(--brand); }
+    .phase-item.upcoming { color:var(--text-secondary); }
+    .phase-item.upcoming .phase-dot { background:var(--border-light); border:1px solid var(--border); }
+    .phase-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; transition:all 0.2s; }
+    .phase-dur { font-size:11px; margin-left:auto; color:var(--text-tertiary); }
+    .phase-item.active .phase-dur { color:var(--brand-mid); }
+    .phase-item.done .phase-name { text-decoration:line-through; }
+
+    /* ── CODE & QR IN PHASE PANEL ── */
+    .panel-code { margin-top:auto; padding-top:20px; border-top:1px solid var(--border); }
+    .panel-code-display { background:var(--brand-light); border:1px solid #cccaf5; border-radius:var(--radius); padding:14px; text-align:center; }
+    .panel-digits { display:flex; gap:4px; justify-content:center; margin:8px 0; }
+    .panel-digit { width:28px; height:36px; background:white; border:1px solid #cccaf5; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600; color:var(--brand-dark); font-family:'DM Mono',monospace; }
+    .panel-code-url { font-size:11px; color:var(--brand); }
+    .qr-toggle { font-size:11px; color:var(--brand); background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; padding:0; display:inline-flex; align-items:center; gap:4px; margin-top:8px; }
+    .qr-toggle:hover { text-decoration:underline; }
+    .qr-wrap { display:none; margin-top:10px; background:white; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; align-items:center; justify-content:center; }
+    .qr-wrap.visible { display:flex; }
+    .qr-hint { font-size:10px; color:var(--text-tertiary); margin-top:6px; }
+
+    /* ── CLOCK PANEL ── */
+    .clock-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; gap:24px; }
+    .clock-label { font-size:11px; font-weight:600; letter-spacing:0.6px; color:var(--text-tertiary); text-transform:uppercase; text-align:center; margin-bottom:10px; }
+
+    /* ── FLIP CLOCK ── */
+    .flip-clock { display:flex; align-items:center; gap:6px; }
+    .flip-unit { display:flex; gap:3px; }
+    .flip-card-wrap { perspective:400px; }
+    .flip-card {
+      width:42px; height:60px;
+      background:var(--brand-dark);
+      border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:34px; font-weight:600; color:white;
+      font-family:'DM Mono',monospace;
+      position:relative; overflow:hidden;
+    }
+    .flip-card::after { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:rgba(0,0,0,0.3); }
+    .flip-card.flipping { animation:flip 0.3s ease-in-out; }
+    @keyframes flip {
+      0%   { transform:rotateX(0deg); }
+      50%  { transform:rotateX(-90deg); }
+      100% { transform:rotateX(0deg); }
+    }
+    .flip-sep { font-size:30px; font-weight:600; color:var(--brand-dark); line-height:1; padding:0 2px; margin-bottom:4px; }
+
+    /* ── SECONDARY CLOCK ── */
+    .sec-clock { display:flex; align-items:center; gap:4px; }
+    .sec-card { width:28px; height:38px; background:var(--bg); border:1px solid var(--border); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:19px; font-weight:600; color:var(--text-secondary); font-family:'DM Mono',monospace; position:relative; overflow:hidden; }
+    .sec-card::after { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:rgba(0,0,0,0.08); }
+    .sec-sep { font-size:16px; color:var(--text-tertiary); padding:0 1px; margin-bottom:3px; }
+
+    /* ── TRANSITION BANNER ── */
+    .transition-banner {
+      background:var(--brand-light); border:1px solid #afa9ec;
+      border-radius:var(--radius-sm); padding:10px 16px;
+      font-size:13px; color:var(--brand-dark); text-align:center;
+      display:none; align-items:center; justify-content:center; gap:7px;
+      margin-bottom:16px; animation:fadeIn 0.3s ease;
+    }
+    .transition-banner.visible { display:flex; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── PAUSED BANNER ── */
+    .paused-banner { background:var(--amber-light); border:1px solid #f5c18a; border-radius:var(--radius-sm); padding:10px 16px; font-size:13px; color:var(--amber); text-align:center; display:none; margin-bottom:16px; }
+    .paused-banner.visible { display:block; }
+
+    /* ── HOST CONTROLS ── */
+    .host-controls { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .controls-note { font-size:11px; color:var(--text-tertiary); text-align:center; margin-top:6px; }
+
+    /* ── SESSION NAME IN CLOCK PANEL ── */
+    .session-name-lbl { font-size:14px; font-weight:500; color:var(--text-primary); text-align:center; }
+    .phase-name-lbl { font-size:13px; color:var(--brand); text-align:center; font-weight:500; }
+
+    /* ── COMPLETE SCREEN ── */
+    .complete-body { text-align:center; padding:60px 24px; }
+    .complete-icon { width:72px; height:72px; border-radius:50%; background:var(--green-light); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+
+    /* ── JOIN SCREEN ── */
+    .join-body { flex:1; display:flex; align-items:center; justify-content:center; padding:32px 20px; }
+    .join-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:36px 32px; width:100%; max-width:400px; box-shadow:var(--shadow-lg); text-align:center; }
+    .code-inputs { display:flex; gap:8px; justify-content:center; }
+    .code-input-box { width:44px; height:54px; border:1.5px solid var(--border); border-radius:10px; background:var(--bg); font-size:24px; font-weight:600; font-family:'DM Mono',monospace; color:var(--brand-dark); text-align:center; transition:border-color 0.15s, box-shadow 0.15s; }
+    .code-input-box:focus { outline:none; border-color:var(--brand-mid); box-shadow:0 0 0 3px rgba(127,119,221,0.15); background:var(--brand-light); }
+
+    /* ── EDIT MODAL ── */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+    .modal-backdrop.visible { display:flex; }
+    .modal-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; width:100%; max-width:480px; box-shadow:var(--shadow-lg); max-height:90vh; overflow-y:auto; }
+    .modal-title { font-size:16px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
+    .modal-warn { font-size:12px; color:var(--amber); background:var(--amber-light); border:1px solid #f5c18a; border-radius:var(--radius-sm); padding:8px 12px; margin-bottom:16px; display:flex; align-items:flex-start; gap:7px; line-height:1.5; }
+
+    /* ── ONBOARDING OVERLAY ── */
+    .onboarding-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
+    .onboarding-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; width:100%; max-width:380px; box-shadow:0 8px 40px rgba(0,0,0,0.18); }
+    .onboarding-logo-row { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+    .onboarding-title { font-size:16px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
+    .onboarding-desc { font-size:13px; color:var(--text-secondary); margin-bottom:20px; line-height:1.5; }
+    .onboarding-steps { display:flex; flex-direction:column; gap:0; margin-bottom:22px; }
+    .onboarding-step { display:flex; align-items:center; gap:12px; }
+    .onboarding-step-icon { width:36px; height:36px; border-radius:9px; background:var(--brand-light); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .onboarding-step-icon i { font-size:17px; color:var(--brand); }
+    .onboarding-step-label { font-size:13px; font-weight:500; color:var(--text-primary); line-height:1.4; }
+    .onboarding-connector { width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--text-tertiary); font-size:13px; margin:3px 0; }
+    .onboarding-footer { display:flex; align-items:center; justify-content:space-between; padding-top:16px; border-top:1px solid var(--border); }
+    .onboarding-dont-show { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-secondary); cursor:pointer; }
+    .onboarding-dont-show input { width:14px; height:14px; accent-color:var(--brand); cursor:pointer; flex-shrink:0; }
+
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a id="topbar-logo-link" href="/" class="logo" style="text-decoration:none">B</a>
+  <span class="brand-name">Bareel</span>
+  <span class="brand-sub">Timekeeper</span>
+  <span class="badge hidden" id="topbar-badge">Host</span>
+</header>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1 — HOST SETUP
+════════════════════════════════════════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="container">
+    <h1>Create a timer session</h1>
+    <p class="subtitle">Share the code and everyone sees the same clock.</p>
+    <div class="card">
+      <div class="field">
+        <label>Session name</label>
+        <input type="text" id="session-name" placeholder="e.g. Q3 budget review" />
+      </div>
+
+      <div class="field">
+        <label>Timer mode</label>
+        <div class="mode-grid">
+          <div class="mode-card selected" id="mode-simple" onclick="setMode('simple')">
+            <div class="mode-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
+            <div class="mode-name">Simple timer</div>
+            <div class="mode-desc">One countdown, no phases</div>
+          </div>
+          <div class="mode-card" id="mode-phased" onclick="setMode('phased')">
+            <div class="mode-icon"><i class="ti ti-list-numbers" aria-hidden="true"></i></div>
+            <div class="mode-name">Phased timer</div>
+            <div class="mode-desc">Named phases, auto-advances</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simple mode duration -->
+      <div class="field" id="field-simple">
+        <label>Duration</label>
+        <input type="text" id="simple-duration" placeholder="e.g. 25 mins or 1:30:00" />
+      </div>
+
+      <!-- Phased mode phases -->
+      <div class="field hidden" id="field-phased">
+        <label>Phases</label>
+        <div id="phases-container"></div>
+        <button class="add-link" onclick="addPhase()">+ Add a phase</button>
+        <div id="total-pill-wrap"></div>
+      </div>
+
+      <div class="error-msg" id="setup-error"></div>
+      <hr class="divider" />
+      <button class="btn btn-primary btn-full" id="btn-create" onclick="createSession()">
+        Create timer session
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2 — ACTIVE SESSION
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-active">
+  <div class="inner">
+    <!-- Phase panel (left) -->
+    <div class="phase-panel" id="phase-panel">
+      <div class="phase-panel-title">Session</div>
+      <div id="phase-list"></div>
+      <div class="panel-code" id="panel-code">
+        <div class="panel-code-display">
+          <div class="section-label">Join code</div>
+          <div class="panel-digits" id="panel-digits"></div>
+          <div class="panel-code-url">bareel.link</div>
+          <button class="qr-toggle" onclick="toggleQR()">
+            <i class="ti ti-qrcode" aria-hidden="true"></i>
+            <span id="qr-toggle-label">Show QR</span>
+          </button>
+          <div class="qr-wrap" id="qr-wrap">
+            <div>
+              <div id="qr-code"></div>
+              <div class="qr-hint">Scan to join</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clock panel (right) -->
+    <div class="clock-panel">
+      <div class="transition-banner" id="transition-banner">
+        <i class="ti ti-bell" aria-hidden="true" style="font-size:14px"></i>
+        <span id="transition-text"></span>
+      </div>
+      <div class="paused-banner" id="paused-banner">⏸ Timer paused by host</div>
+
+      <div class="session-name-lbl" id="active-session-name"></div>
+      <div class="phase-name-lbl" id="active-phase-name"></div>
+
+      <div>
+        <div class="clock-label">Current phase</div>
+        <div class="flip-clock" id="phase-clock">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="width:1px;height:40px;background:var(--border)"></div>
+        <div style="text-align:center">
+          <div class="clock-label">Total remaining</div>
+          <div class="sec-clock" id="total-clock">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+        <div style="width:1px;height:40px;background:var(--border)"></div>
+      </div>
+
+      <!-- Host controls -->
+      <div id="host-controls-wrap">
+        <div class="host-controls">
+          <button class="btn btn-ghost btn-sm" id="btn-pause" onclick="togglePause()">
+            <i class="ti ti-player-pause" id="pause-icon" aria-hidden="true" style="font-size:14px"></i>
+            <span id="pause-label">Pause</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="openEditModal()">
+            <i class="ti ti-pencil" aria-hidden="true" style="font-size:14px"></i> Edit
+          </button>
+          <button class="btn btn-outline btn-sm" id="btn-skip" onclick="skipPhase()">
+            <i class="ti ti-player-skip-forward" aria-hidden="true" style="font-size:14px"></i> Skip to next phase
+          </button>
+        </div>
+        <div class="controls-note">Pause, Edit and Skip visible to host only</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3 — JOIN (participant)
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-join">
+  <div class="join-body">
+    <div class="join-card">
+      <h1 style="text-align:center;margin-bottom:6px">Join a session</h1>
+      <p class="subtitle" style="text-align:center">Enter the 6-digit code from your host.</p>
+      <div class="field">
+        <label>Session code</label>
+        <div class="code-inputs" id="code-input-boxes"></div>
+      </div>
+      <div class="error-msg" id="join-error"></div>
+      <button class="btn btn-primary btn-full" id="btn-join" onclick="joinSession()">Find session</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 4 — COMPLETE
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-complete">
+  <div class="container">
+    <div class="complete-body">
+      <div class="complete-icon">
+        <i class="ti ti-clock-check" aria-hidden="true" style="font-size:30px;color:#0F6E56"></i>
+      </div>
+      <h1>Time's up!</h1>
+      <p class="subtitle" id="complete-subtitle">The session has ended.</p>
+      <div id="btn-run-another-wrap" style="margin-top:24px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     EDIT MODAL
+════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal-card">
+    <div class="modal-title">Edit session</div>
+    <div class="modal-warn">
+      <i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:14px;flex-shrink:0;margin-top:1px"></i>
+      Saving changes will pause the clock for everyone and restart from your new settings.
+    </div>
+    <div class="field">
+      <label>Session name</label>
+      <input type="text" id="edit-name" />
+    </div>
+    <div class="field">
+      <label>Timer mode</label>
+      <div class="mode-grid">
+        <div class="mode-card selected" id="edit-mode-simple" onclick="setEditMode('simple')">
+          <div class="mode-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
+          <div class="mode-name">Simple timer</div>
+          <div class="mode-desc">One countdown, no phases</div>
+        </div>
+        <div class="mode-card" id="edit-mode-phased" onclick="setEditMode('phased')">
+          <div class="mode-icon"><i class="ti ti-list-numbers" aria-hidden="true"></i></div>
+          <div class="mode-name">Phased timer</div>
+          <div class="mode-desc">Named phases, auto-advances</div>
+        </div>
+      </div>
+    </div>
+    <div class="field" id="edit-field-simple">
+      <label>Duration</label>
+      <input type="text" id="edit-simple-duration" placeholder="e.g. 25 mins or 1:30:00" />
+    </div>
+    <div class="field hidden" id="edit-field-phased">
+      <label>Phases</label>
+      <div id="edit-phases-container"></div>
+      <button class="add-link" onclick="addEditPhase()">+ Add a phase</button>
+      <div id="edit-total-pill-wrap"></div>
+    </div>
+    <div class="error-msg" id="edit-error"></div>
+    <hr class="divider" />
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEdit()">Save &amp; restart</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     ONBOARDING OVERLAY
+════════════════════════════════════════════ -->
+<div class="onboarding-backdrop" id="onboarding-overlay" style="display:none">
+  <div class="onboarding-card">
+    <div class="onboarding-logo-row">
+      <div class="logo">B</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text-primary)">Bareel Timekeeper</div>
+    </div>
+    <div class="onboarding-title">How it works</div>
+    <div class="onboarding-desc">Four simple steps — here's what to expect.</div>
+    <div class="onboarding-steps">
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-settings" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Create your timer session</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-share" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Share your code or QR</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Everyone sees the same live clock</div>
+      </div>
+      <div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
+        <div class="onboarding-step-label">Time's up — session complete!</div>
+      </div>
+    </div>
+    <div class="onboarding-footer">
+      <label class="onboarding-dont-show">
+        <input type="checkbox" id="onboarding-dont-show" />
+        Don't show this again
+      </label>
+      <button class="btn btn-primary btn-sm" onclick="closeOnboarding()">Got it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = window.BAREEL_CONFIG.supabaseUrl;
+const SUPABASE_ANON_KEY = window.BAREEL_CONFIG.supabaseAnonKey;
+const { createClient } = supabase;
+let db;
+try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.warn('Supabase init failed', e); }
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let state = {
+  role: null,
+  sessionId: null,
+  sessionCode: null,
+  sessionName: '',
+  mode: 'simple',
+  phases: [],          // [{name, seconds}]
+  currentPhaseIdx: 0,
+  isPaused: false,
+  startedAt: null,     // ISO string when current phase started
+  pausedAt: null,
+  pausedDuration: 0,   // seconds paused so far in this phase
+  subscription: null,
+  pollInterval: null,
+  tickInterval: null,
+  lastFlipValues: {},
+};
+
+// ── SCREEN ROUTER ──────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const logo = document.getElementById('topbar-logo-link');
+  const badge = document.getElementById('topbar-badge');
+  logo.href = state.role === 'participant' ? '/' : '/';
+  badge.classList.toggle('hidden', id !== 'screen-active' || state.role !== 'host');
+}
+
+// ── MODE SELECTOR ──────────────────────────────────────────────────────────
+let currentMode = 'simple';
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('mode-simple').classList.toggle('selected', mode === 'simple');
+  document.getElementById('mode-phased').classList.toggle('selected', mode === 'phased');
+  document.getElementById('field-simple').classList.toggle('hidden', mode !== 'simple');
+  document.getElementById('field-phased').classList.toggle('hidden', mode !== 'phased');
+}
+
+function setEditMode(mode) {
+  document.getElementById('edit-mode-simple').classList.toggle('selected', mode === 'simple');
+  document.getElementById('edit-mode-phased').classList.toggle('selected', mode === 'phased');
+  document.getElementById('edit-field-simple').classList.toggle('hidden', mode !== 'simple');
+  document.getElementById('edit-field-phased').classList.toggle('hidden', mode !== 'phased');
+}
+
+// ── PHASE MANAGEMENT ───────────────────────────────────────────────────────
+function addPhase(name = '', duration = '') {
+  const container = document.getElementById('phases-container');
+  const row = document.createElement('div');
+  row.className = 'phase-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Phase name" value="${name}" oninput="updateTotal()" />
+    <input type="text" class="phase-time-input" placeholder="e.g. 5 mins" value="${duration}" oninput="updateTotal()" />
+    <button class="btn-remove" onclick="removePhaseRow(this)">×</button>`;
+  container.appendChild(row);
+  updateTotal();
+  row.querySelector('input').focus();
+}
+
+function addEditPhase(name = '', duration = '') {
+  const container = document.getElementById('edit-phases-container');
+  const row = document.createElement('div');
+  row.className = 'phase-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Phase name" value="${name}" oninput="updateEditTotal()" />
+    <input type="text" class="phase-time-input" placeholder="e.g. 5 mins" value="${duration}" oninput="updateEditTotal()" />
+    <button class="btn-remove" onclick="removeEditPhaseRow(this)">×</button>`;
+  container.appendChild(row);
+  updateEditTotal();
+  row.querySelector('input').focus();
+}
+
+function removePhaseRow(btn) {
+  btn.parentElement.remove();
+  updateTotal();
+}
+
+function removeEditPhaseRow(btn) {
+  btn.parentElement.remove();
+  updateEditTotal();
+}
+
+function updateTotal() {
+  const rows = document.querySelectorAll('#phases-container .phase-row');
+  let total = 0; let valid = true;
+  rows.forEach(row => {
+    const dur = row.querySelectorAll('input')[1].value.trim();
+    const secs = parseDuration(dur);
+    if (secs === null && dur) valid = false;
+    if (secs) total += secs;
+  });
+  const wrap = document.getElementById('total-pill-wrap');
+  if (total === 0) { wrap.innerHTML = ''; return; }
+  const label = formatDuration(total);
+  wrap.innerHTML = `<div class="total-pill${!valid ? ' error' : ''}"><i class="ti ti-clock" aria-hidden="true" style="font-size:11px"></i>Total: ${label}</div>`;
+}
+
+function updateEditTotal() {
+  const rows = document.querySelectorAll('#edit-phases-container .phase-row');
+  let total = 0;
+  rows.forEach(row => {
+    const dur = row.querySelectorAll('input')[1].value.trim();
+    const secs = parseDuration(dur);
+    if (secs) total += secs;
+  });
+  const wrap = document.getElementById('edit-total-pill-wrap');
+  wrap.innerHTML = total ? `<div class="total-pill"><i class="ti ti-clock" aria-hidden="true" style="font-size:11px"></i>Total: ${formatDuration(total)}</div>` : '';
+}
+
+// ── PARSE DURATION ─────────────────────────────────────────────────────────
+function parseDuration(str) {
+  if (!str) return null;
+  str = str.trim().toLowerCase();
+  // HH:MM:SS or MM:SS
+  if (/^\d+:\d+:\d+$/.test(str)) {
+    const [h,m,s] = str.split(':').map(Number);
+    return h*3600 + m*60 + s;
+  }
+  if (/^\d+:\d+$/.test(str)) {
+    const [m,s] = str.split(':').map(Number);
+    return m*60 + s;
+  }
+  // "X hours Y mins Z secs" etc
+  let secs = 0;
+  const h = str.match(/(\d+)\s*h/); if (h) secs += parseInt(h[1]) * 3600;
+  const m = str.match(/(\d+)\s*m/); if (m) secs += parseInt(m[1]) * 60;
+  const s = str.match(/(\d+)\s*s/); if (s) secs += parseInt(s[1]);
+  if (secs > 0) return secs;
+  // plain number = minutes
+  const n = parseFloat(str);
+  if (!isNaN(n) && n > 0) return Math.round(n * 60);
+  return null;
+}
+
+function formatDuration(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}h ${m}m ${s > 0 ? s + 's' : ''}`.trim();
+  if (m > 0) return `${m}m ${s > 0 ? s + 's' : ''}`.trim();
+  return `${s}s`;
+}
+
+// ── CREATE SESSION ─────────────────────────────────────────────────────────
+async function createSession() {
+  const btn = document.getElementById('btn-create');
+  const errEl = document.getElementById('setup-error');
+  errEl.classList.remove('visible');
+
+  if (!db) { showError('setup-error', 'Supabase not configured.'); return; }
+
+  const name = document.getElementById('session-name').value.trim();
+  if (!name) { showError('setup-error', 'Please enter a session name.'); return; }
+
+  let phases = [];
+  if (currentMode === 'simple') {
+    const dur = parseDuration(document.getElementById('simple-duration').value.trim());
+    if (!dur) { showError('setup-error', 'Please enter a valid duration (e.g. 25 mins or 1:30:00).'); return; }
+    phases = [{ name, seconds: dur }];
+  } else {
+    const rows = document.querySelectorAll('#phases-container .phase-row');
+    if (rows.length === 0) { showError('setup-error', 'Please add at least one phase.'); return; }
+    for (const row of rows) {
+      const pname = row.querySelectorAll('input')[0].value.trim();
+      const secs  = parseDuration(row.querySelectorAll('input')[1].value.trim());
+      if (!pname) { showError('setup-error', 'Please name all phases.'); return; }
+      if (!secs)  { showError('setup-error', `Invalid duration for phase "${pname}".`); return; }
+      phases.push({ name: pname, seconds: secs });
+    }
+  }
+
+  saveHostSettings(name, currentMode, phases);
+
+  btn.innerHTML = '<div class="spinner"></div> Creating...';
+  btn.disabled = true;
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  const { data, error } = await db.from('tk_sessions').insert({
+    code, name,
+    mode: currentMode,
+    phases,
+    tool_type: 'timekeeper',
+    status: 'active',
+    current_phase_idx: 0,
+    is_paused: false,
+    phase_started_at: new Date().toISOString(),
+    paused_at: null,
+    paused_duration: 0,
+  }).select().single();
+
+  btn.innerHTML = 'Create timer session';
+  btn.disabled = false;
+
+  if (error) { console.error(error); showError('setup-error', `Could not create session: ${error.message}`); return; }
+
+  state.role = 'host';
+  state.sessionId = data.id;
+  state.sessionCode = code;
+  state.sessionName = name;
+  state.mode = currentMode;
+  state.phases = phases;
+  state.currentPhaseIdx = 0;
+  state.isPaused = false;
+  state.startedAt = data.phase_started_at;
+  state.pausedDuration = 0;
+
+  renderActiveScreen();
+  subscribeToSession(data.id);
+}
+
+// ── JOIN SESSION ───────────────────────────────────────────────────────────
+async function joinSession() {
+  const btn = document.getElementById('btn-join');
+  const errEl = document.getElementById('join-error');
+  errEl.classList.remove('visible');
+
+  const boxes = document.querySelectorAll('.code-input-box');
+  const code = Array.from(boxes).map(b => b.value).join('');
+  if (code.length < 6) { showError('join-error', 'Please enter the full 6-digit code.'); return; }
+
+  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+
+  const { data: session, error } = await db.from('tk_sessions').select('*').eq('code', code).single();
+
+  btn.innerHTML = 'Find session';
+  btn.disabled = false;
+
+  if (error || !session) { showError('join-error', 'Session not found. Check the code and try again.'); return; }
+  if (session.status === 'complete') { showError('join-error', 'This session has already ended.'); return; }
+
+  state.role = 'participant';
+  state.sessionId = session.id;
+  state.sessionCode = code;
+  state.sessionName = session.name;
+  state.mode = session.mode;
+  state.phases = session.phases;
+  state.currentPhaseIdx = session.current_phase_idx;
+  state.isPaused = session.is_paused;
+  state.startedAt = session.phase_started_at;
+  state.pausedDuration = session.paused_duration || 0;
+
+  renderActiveScreen();
+  subscribeToSession(session.id);
+}
+
+// ── RENDER ACTIVE SCREEN ───────────────────────────────────────────────────
+function renderActiveScreen() {
+  document.getElementById('active-session-name').textContent = state.sessionName;
+
+  // Hide host controls for participants
+  const hostControls = document.getElementById('host-controls-wrap');
+  const panelCode = document.getElementById('panel-code');
+  const btnSkip = document.getElementById('btn-skip');
+  if (state.role === 'participant') {
+    hostControls.classList.add('hidden');
+    panelCode.classList.add('hidden');
+  } else {
+    hostControls.classList.remove('hidden');
+    panelCode.classList.remove('hidden');
+    // render code digits
+    renderPanelDigits();
+    generateQR(state.sessionCode);
+  }
+
+  // render phase list
+  renderPhaseList();
+  renderClocks();
+  startTick();
+  showScreen('screen-active');
+}
+
+function renderPhaseList() {
+  const list = document.getElementById('phase-list');
+  const skipBtn = document.getElementById('btn-skip');
+
+  if (state.mode === 'simple') {
+    list.innerHTML = `<div class="phase-item active"><div class="phase-dot"></div><span class="phase-name">${state.phases[0]?.name || 'Timer'}</span><span class="phase-dur">${formatDuration(state.phases[0]?.seconds || 0)}</span></div>`;
+    if (skipBtn) skipBtn.classList.add('hidden');
+    return;
+  }
+
+  if (skipBtn) skipBtn.classList.remove('hidden');
+
+  list.innerHTML = state.phases.map((p, i) => {
+    const cls = i < state.currentPhaseIdx ? 'done' : i === state.currentPhaseIdx ? 'active' : 'upcoming';
+    return `<div class="phase-item ${cls}"><div class="phase-dot"></div><span class="phase-name">${p.name}</span><span class="phase-dur">${formatDuration(p.seconds)}</span></div>`;
+  }).join('');
+
+  const current = state.phases[state.currentPhaseIdx];
+  document.getElementById('active-phase-name').textContent = current ? current.name : '';
+}
+
+// ── FLIP CLOCK RENDERING ───────────────────────────────────────────────────
+function buildFlockHTML(containerId, large) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  const units = large
+    ? ['hh', 'mm', 'ss']
+    : ['hh', 'mm', 'ss'];
+
+  const cardClass = large ? 'flip-card' : 'sec-card';
+  const sepClass  = large ? 'flip-sep' : 'sec-sep';
+
+  units.forEach((unit, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'flip-unit';
+    wrap.innerHTML = `
+      <div class="flip-card-wrap"><div class="${cardClass}" id="${containerId}-${unit}-t">0</div></div>
+      <div class="flip-card-wrap"><div class="${cardClass}" id="${containerId}-${unit}-u">0</div></div>`;
+    container.appendChild(wrap);
+    if (idx < 2) {
+      const sep = document.createElement('div');
+      sep.className = sepClass;
+      sep.textContent = ':';
+      container.appendChild(sep);
+    }
+  });
+}
+
+function updateFlipDisplay(containerId, totalSecs) {
+  totalSecs = Math.max(0, Math.round(totalSecs));
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+
+  const vals = {
+    'hh-t': Math.floor(h / 10),
+    'hh-u': h % 10,
+    'mm-t': Math.floor(m / 10),
+    'mm-u': m % 10,
+    'ss-t': Math.floor(s / 10),
+    'ss-u': s % 10,
+  };
+
+  Object.entries(vals).forEach(([key, val]) => {
+    const el = document.getElementById(`${containerId}-${key}`);
+    if (!el) return;
+    const prev = state.lastFlipValues[`${containerId}-${key}`];
+    if (prev !== val) {
+      el.classList.remove('flipping');
+      void el.offsetWidth;
+      el.classList.add('flipping');
+      el.textContent = val;
+      state.lastFlipValues[`${containerId}-${key}`] = val;
+    }
+  });
+}
+
+function renderClocks() {
+  buildFlockHTML('phase-clock', true);
+  buildFlockHTML('total-clock', false);
+  updateClocks();
+}
+
+function updateClocks() {
+  const now = Date.now();
+  const phaseStarted  = new Date(state.startedAt).getTime();
+  const elapsed = state.isPaused
+    ? (new Date(state.pausedAt).getTime() - phaseStarted - state.pausedDuration * 1000)
+    : (now - phaseStarted - state.pausedDuration * 1000);
+
+  const currentPhase  = state.phases[state.currentPhaseIdx];
+  const phaseTotal    = (currentPhase?.seconds || 0) * 1000;
+  const phaseLeft     = Math.max(0, phaseTotal - elapsed) / 1000;
+
+  // total remaining
+  const futurePhasesSecs = state.phases.slice(state.currentPhaseIdx + 1).reduce((a, p) => a + p.seconds, 0);
+  const totalLeft = phaseLeft + futurePhasesSecs;
+
+  updateFlipDisplay('phase-clock', phaseLeft);
+  updateFlipDisplay('total-clock', totalLeft);
+
+  // check if phase is done (host advances)
+  if (phaseLeft <= 0 && state.role === 'host' && !state.isPaused) {
+    advancePhase();
+  }
+}
+
+// ── TICK ───────────────────────────────────────────────────────────────────
+function startTick() {
+  clearInterval(state.tickInterval);
+  state.tickInterval = setInterval(() => {
+    if (!state.isPaused) updateClocks();
+  }, 500);
+}
+
+// ── ADVANCE PHASE ──────────────────────────────────────────────────────────
+async function advancePhase() {
+  const nextIdx = state.currentPhaseIdx + 1;
+  if (nextIdx >= state.phases.length) {
+    await db.from('tk_sessions').update({ status: 'complete' }).eq('id', state.sessionId);
+    return;
+  }
+
+  await db.from('tk_sessions').update({
+    current_phase_idx: nextIdx,
+    phase_started_at: new Date().toISOString(),
+    paused_at: null,
+    paused_duration: 0,
+  }).eq('id', state.sessionId);
+}
+
+async function skipPhase() {
+  const nextIdx = state.currentPhaseIdx + 1;
+  if (nextIdx >= state.phases.length) {
+    await db.from('tk_sessions').update({ status: 'complete' }).eq('id', state.sessionId);
+    return;
+  }
+  await db.from('tk_sessions').update({
+    current_phase_idx: nextIdx,
+    phase_started_at: new Date().toISOString(),
+    is_paused: false,
+    paused_at: null,
+    paused_duration: 0,
+  }).eq('id', state.sessionId);
+}
+
+// ── PAUSE ──────────────────────────────────────────────────────────────────
+async function togglePause() {
+  const newPaused = !state.isPaused;
+  if (newPaused) {
+    await db.from('tk_sessions').update({ is_paused: true, paused_at: new Date().toISOString() }).eq('id', state.sessionId);
+  } else {
+    const elapsed = Math.floor((Date.now() - new Date(state.pausedAt).getTime()) / 1000);
+    const newPausedDuration = (state.pausedDuration || 0) + elapsed;
+    await db.from('tk_sessions').update({ is_paused: false, paused_at: null, paused_duration: newPausedDuration }).eq('id', state.sessionId);
+  }
+}
+
+function updatePauseUI() {
+  const label = document.getElementById('pause-label');
+  const icon  = document.getElementById('pause-icon');
+  const banner = document.getElementById('paused-banner');
+  if (label) label.textContent = state.isPaused ? 'Resume' : 'Pause';
+  if (icon)  icon.className = state.isPaused ? 'ti ti-player-play' : 'ti ti-player-pause';
+  if (banner) banner.classList.toggle('visible', state.isPaused);
+}
+
+// ── EDIT MODAL ─────────────────────────────────────────────────────────────
+function openEditModal() {
+  document.getElementById('edit-name').value = state.sessionName;
+  setEditMode(state.mode);
+
+  if (state.mode === 'simple') {
+    document.getElementById('edit-simple-duration').value = formatDuration(state.phases[0]?.seconds || 0);
+  } else {
+    const container = document.getElementById('edit-phases-container');
+    container.innerHTML = '';
+    state.phases.forEach(p => addEditPhase(p.name, formatDuration(p.seconds)));
+    updateEditTotal();
+  }
+
+  document.getElementById('edit-modal').classList.add('visible');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('visible');
+}
+
+async function saveEdit() {
+  const errEl = document.getElementById('edit-error');
+  errEl.classList.remove('visible');
+
+  const name = document.getElementById('edit-name').value.trim();
+  if (!name) { showError('edit-error', 'Please enter a session name.'); return; }
+
+  const editMode = document.getElementById('edit-mode-phased').classList.contains('selected') ? 'phased' : 'simple';
+  let phases = [];
+
+  if (editMode === 'simple') {
+    const dur = parseDuration(document.getElementById('edit-simple-duration').value.trim());
+    if (!dur) { showError('edit-error', 'Please enter a valid duration.'); return; }
+    phases = [{ name, seconds: dur }];
+  } else {
+    const rows = document.querySelectorAll('#edit-phases-container .phase-row');
+    for (const row of rows) {
+      const pname = row.querySelectorAll('input')[0].value.trim();
+      const secs  = parseDuration(row.querySelectorAll('input')[1].value.trim());
+      if (!pname || !secs) { showError('edit-error', 'Please fill in all phases.'); return; }
+      phases.push({ name: pname, seconds: secs });
+    }
+    if (phases.length === 0) { showError('edit-error', 'Please add at least one phase.'); return; }
+  }
+
+  await db.from('tk_sessions').update({
+    name, mode: editMode, phases,
+    current_phase_idx: 0,
+    is_paused: false,
+    paused_at: null,
+    paused_duration: 0,
+    phase_started_at: new Date().toISOString(),
+  }).eq('id', state.sessionId);
+
+  closeEditModal();
+}
+
+// ── REALTIME ───────────────────────────────────────────────────────────────
+function subscribeToSession(sessionId) {
+  if (state.subscription) state.subscription.unsubscribe();
+
+  state.subscription = db.channel(`tk-${sessionId}`)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tk_sessions', filter: `id=eq.${sessionId}` },
+      payload => handleSessionUpdate(payload.new))
+    .subscribe();
+
+  if (state.pollInterval) clearInterval(state.pollInterval);
+  state.pollInterval = setInterval(async () => {
+    const { data } = await db.from('tk_sessions').select('*').eq('id', sessionId).single();
+    if (data) handleSessionUpdate(data);
+  }, 1000);
+}
+
+function handleSessionUpdate(data) {
+  const phaseChanged = data.current_phase_idx !== state.currentPhaseIdx;
+  const prevPhaseIdx = state.currentPhaseIdx;
+
+  state.sessionName     = data.name;
+  state.mode            = data.mode;
+  state.phases          = data.phases;
+  state.currentPhaseIdx = data.current_phase_idx;
+  state.isPaused        = data.is_paused;
+  state.startedAt       = data.phase_started_at;
+  state.pausedAt        = data.paused_at;
+  state.pausedDuration  = data.paused_duration || 0;
+
+  if (data.status === 'complete') {
+    clearInterval(state.tickInterval);
+    clearInterval(state.pollInterval);
+    if (state.subscription) state.subscription.unsubscribe();
+    document.getElementById('complete-subtitle').textContent = `"${state.sessionName}" has ended.`;
+    const wrap = document.getElementById('btn-run-another-wrap');
+    wrap.innerHTML = state.role === 'host'
+      ? '<button class="btn btn-outline" onclick="runAnother()">Run another session</button>'
+      : '';
+    showScreen('screen-complete');
+    return;
+  }
+
+  // phase transition banner
+  if (phaseChanged && data.current_phase_idx < data.phases.length) {
+    showTransitionBanner(`Now entering: ${data.phases[data.current_phase_idx].name}`);
+    renderClocks();
+  }
+
+  // session was edited — re-render everything
+  if (data.name !== document.getElementById('active-session-name').textContent) {
+    document.getElementById('active-session-name').textContent = data.name;
+    renderClocks();
+  }
+
+  renderPhaseList();
+  updatePauseUI();
+}
+
+function showTransitionBanner(text) {
+  const banner = document.getElementById('transition-banner');
+  document.getElementById('transition-text').textContent = text;
+  banner.classList.add('visible');
+  setTimeout(() => banner.classList.remove('visible'), 4000);
+}
+
+// ── QR CODE ────────────────────────────────────────────────────────────────
+function generateQR(code) {
+  const container = document.getElementById('qr-code');
+  if (!container) return;
+  container.innerHTML = '';
+  new QRCode(container, {
+    text: `${window.location.origin}/join/?code=${code}`,
+    width: 120, height: 120,
+    colorDark: '#26215C', colorLight: '#EEEDFE',
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+}
+
+function toggleQR() {
+  const wrap  = document.getElementById('qr-wrap');
+  const label = document.getElementById('qr-toggle-label');
+  const vis   = wrap.classList.contains('visible');
+  wrap.classList.toggle('visible', !vis);
+  label.textContent = vis ? 'Show QR' : 'Hide QR';
+}
+
+function renderPanelDigits() {
+  const el = document.getElementById('panel-digits');
+  el.innerHTML = state.sessionCode.split('').map(d => `<div class="panel-digit">${d}</div>`).join('');
+}
+
+// ── ONBOARDING ─────────────────────────────────────────────────────────────
+function initOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (state.role === 'participant') { overlay.style.display = 'none'; return; }
+  overlay.style.display = localStorage.getItem('bareel_tk_hide_onboarding') === 'true' ? 'none' : 'flex';
+}
+
+function closeOnboarding() {
+  if (document.getElementById('onboarding-dont-show').checked) {
+    localStorage.setItem('bareel_tk_hide_onboarding', 'true');
+  }
+  document.getElementById('onboarding-overlay').style.display = 'none';
+}
+
+// ── LOCALSTORAGE ───────────────────────────────────────────────────────────
+function saveHostSettings(name, mode, phases) {
+  localStorage.setItem('bareel_tk_settings', JSON.stringify({ name, mode, phases }));
+}
+
+function loadHostSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bareel_tk_settings'));
+    if (!saved) return;
+    if (saved.name) document.getElementById('session-name').value = saved.name;
+    if (saved.mode) setMode(saved.mode);
+    if (saved.mode === 'simple' && saved.phases?.[0]) {
+      document.getElementById('simple-duration').value = formatDuration(saved.phases[0].seconds);
+    }
+    if (saved.mode === 'phased' && saved.phases?.length) {
+      saved.phases.forEach(p => addPhase(p.name, formatDuration(p.seconds)));
+    }
+  } catch(e) {}
+}
+
+// ── RUN ANOTHER ────────────────────────────────────────────────────────────
+function runAnother() {
+  clearInterval(state.tickInterval);
+  if (state.subscription) state.subscription.unsubscribe();
+  if (state.pollInterval) clearInterval(state.pollInterval);
+  state = { role:'host', sessionId:null, sessionCode:null, sessionName:'', mode:'simple', phases:[], currentPhaseIdx:0, isPaused:false, startedAt:null, pausedAt:null, pausedDuration:0, subscription:null, pollInterval:null, tickInterval:null, lastFlipValues:{} };
+  loadHostSettings();
+  showScreen('screen-setup');
+}
+
+// ── UTILITIES ──────────────────────────────────────────────────────────────
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('visible');
+}
+
+// ── CODE INPUT BOXES ───────────────────────────────────────────────────────
+function buildCodeInputs() {
+  const wrap = document.getElementById('code-input-boxes');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.maxLength = 1; inp.className = 'code-input-box';
+    inp.inputMode = 'numeric'; inp.pattern = '[0-9]*';
+    inp.addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g,''); if (e.target.value && i < 5) wrap.children[i+1].focus(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Backspace' && !e.target.value && i > 0) wrap.children[i-1].focus(); });
+    inp.addEventListener('paste', e => { e.preventDefault(); const t = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6); t.split('').forEach((ch,idx) => { if (wrap.children[idx]) wrap.children[idx].value = ch; }); if (wrap.children[Math.min(t.length,5)]) wrap.children[Math.min(t.length,5)].focus(); });
+    wrap.appendChild(inp);
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildCodeInputs();
+  // add default phases to setup
+  addPhase('', '');
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const prefilledCode = urlParams.get('code');
+  const isJoin = window.location.search.includes('join') || window.location.pathname.includes('join');
+
+  if (isJoin) {
+    state.role = 'participant';
+    showScreen('screen-join');
+    if (prefilledCode) {
+      const boxes = document.querySelectorAll('.code-input-box');
+      prefilledCode.split('').forEach((ch, i) => { if (boxes[i]) boxes[i].value = ch; });
+      joinSession();
+    }
+  } else {
+    state.role = 'host';
+    document.getElementById('topbar-badge').classList.remove('hidden');
+    loadHostSettings();
+    initOnboarding();
+    showScreen('screen-setup');
+  }
+});
+</script>
+</body>
+</html>

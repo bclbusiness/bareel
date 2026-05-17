@@ -728,6 +728,7 @@ function setMode(mode) {
   document.getElementById('mode-phased').classList.toggle('selected', mode === 'phased');
   document.getElementById('field-simple').classList.toggle('hidden', mode !== 'simple');
   document.getElementById('field-phased').classList.toggle('hidden', mode !== 'phased');
+  if (mode === 'phased') addDefaultPhasesIfEmpty();
 }
 
 function setEditMode(mode) {
@@ -1275,12 +1276,16 @@ async function advancePhase() {
 }
 
 async function skipPhase() {
-  const nextIdx = state.currentPhaseIdx + 1;
-  if (nextIdx >= state.phases.length) {
+  // fetch latest from DB to ensure we have current phase index and phases
+  const { data: fresh } = await db.from('tk_sessions').select('current_phase_idx, phases').eq('id', state.sessionId).single();
+  if (!fresh) return;
+
+  const nextIdx = (fresh.current_phase_idx || 0) + 1;
+  if (nextIdx >= (fresh.phases || state.phases).length) {
     await db.from('tk_sessions').update({ status: 'complete' }).eq('id', state.sessionId);
     return;
   }
-  // simply reset the phase clock for the next phase — total is derived from phase left + future phases
+  // reset phase clock — total remaining recalculates automatically as phaseLeft + future phases
   await db.from('tk_sessions').update({
     current_phase_idx: nextIdx,
     phase_started_at: new Date().toISOString(),
@@ -1321,13 +1326,12 @@ function openEditModal() {
   setSimpleSecs('edit-simple', simpleSecs);
   updateEditSimpleTotal();
 
-  // always pre-fill phased container so it's ready whichever mode host switches to
+  // pre-fill phased container: use existing phases if phased, else defaults
   const container = document.getElementById('edit-phases-container');
   container.innerHTML = '';
-  const hasRealPhases = state.mode === 'phased' && state.phases.length > 1;
-  const phasesToShow = hasRealPhases
+  const phasesToShow = (state.mode === 'phased' && state.phases.length > 1)
     ? state.phases
-    : [{ name: 'Planning', seconds: 600 }, { name: 'Discussion', seconds: 1200 }, { name: 'Wrapping Up', seconds: 300 }];
+    : DEFAULT_PHASES;
   phasesToShow.forEach(p => addEditPhase(p.name, p.seconds));
   updateEditTotal();
 
@@ -1394,13 +1398,12 @@ function toggleWaitingEdit() {
   setSimpleSecs('wedit-simple', simpleSecs);
   updateWEditSimpleTotal();
 
-  // always pre-fill phased container so defaults are ready if host switches
+  // pre-fill phased container: use existing phases if phased, else defaults
   const container = document.getElementById('wedit-phases-container');
   container.innerHTML = '';
-  const hasRealPhases = state.mode === 'phased' && state.phases.length > 1;
-  const phasesToShow = hasRealPhases
+  const phasesToShow = (state.mode === 'phased' && state.phases.length > 1)
     ? state.phases
-    : [{ name: 'Planning', seconds: 600 }, { name: 'Discussion', seconds: 1200 }, { name: 'Wrapping Up', seconds: 300 }];
+    : DEFAULT_PHASES;
   phasesToShow.forEach(p => addWEditPhase(p.name, p.seconds));
   updateWEditTotal();
 
@@ -1643,19 +1646,27 @@ function saveHostSettings(name, mode, phases) {
   localStorage.setItem('bareel_tk_settings', JSON.stringify({ name, mode, phases }));
 }
 
+const DEFAULT_PHASES = [
+  { name: 'Planning', seconds: 600 },
+  { name: 'Discussion', seconds: 1200 },
+  { name: 'Wrapping Up', seconds: 300 },
+];
+
+function addDefaultPhasesIfEmpty() {
+  const container = document.getElementById('phases-container');
+  if (!container || container.querySelectorAll('.phase-row').length > 0) return;
+  DEFAULT_PHASES.forEach(p => addPhase(p.name, p.seconds));
+  updateTotal();
+}
+
 function loadHostSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('bareel_tk_settings'));
     if (!saved) {
-      // nothing saved — default to simple mode, 10 mins
+      // nothing saved — simple mode, 10 mins
       setMode('simple');
       setSimpleSecs('simple', 10 * 60);
       updateSimpleTotal();
-      // pre-populate phased defaults for when user switches
-      addPhase('Planning', 10 * 60);
-      addPhase('Discussion', 20 * 60);
-      addPhase('Wrapping Up', 5 * 60);
-      updateTotal();
       return;
     }
     if (saved.name) document.getElementById('session-name').value = saved.name;
@@ -1666,21 +1677,13 @@ function loadHostSettings() {
     }
     if (saved.mode === 'phased' && saved.phases?.length) {
       saved.phases.forEach(p => addPhase(p.name, p.seconds));
-    } else if (saved.mode === 'phased') {
-      // saved as phased but no phases — add defaults
-      addPhase('Planning', 10 * 60);
-      addPhase('Discussion', 20 * 60);
-      addPhase('Wrapping Up', 5 * 60);
+      updateTotal();
     }
+    // if phased but no phases saved, leave container empty — addDefaultPhasesIfEmpty handles it
   } catch(e) {
-    // on error fall back to simple mode
     setMode('simple');
     setSimpleSecs('simple', 10 * 60);
     updateSimpleTotal();
-    addPhase('Planning', 10 * 60);
-    addPhase('Discussion', 20 * 60);
-    addPhase('Wrapping Up', 5 * 60);
-    updateTotal();
   }
 }
 

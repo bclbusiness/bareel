@@ -280,6 +280,7 @@
     .onboarding-dont-show { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-secondary); cursor:pointer; }
     .onboarding-dont-show input { width:14px; height:14px; accent-color:var(--brand); cursor:pointer; flex-shrink:0; }
 
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.06);opacity:0.85} }
     .hidden { display:none !important; }
   </style>
 </head>
@@ -390,6 +391,7 @@
 
       <div class="session-name-lbl" id="active-session-name"></div>
       <div class="phase-name-lbl" id="active-phase-name"></div>
+      <div style="font-size:12px;color:var(--text-tertiary)" id="active-participant-count"></div>
 
       <div>
         <div class="clock-label">Current phase</div>
@@ -556,7 +558,6 @@
       <div style="width:64px;height:64px;border-radius:50%;background:var(--brand-light);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:pulse 2s ease-in-out infinite">
         <i class="ti ti-clock" aria-hidden="true" style="font-size:28px;color:var(--brand)"></i>
       </div>
-      @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.06);opacity:0.85} }
       <h1 style="margin-bottom:8px" id="participant-wait-name"></h1>
       <p class="subtitle">Waiting for the host to start the timer...</p>
     </div>
@@ -701,6 +702,7 @@ let state = {
   pollInterval: null,
   tickInterval: null,
   lastFlipValues: {},
+  participantCount: 0,
 };
 
 // ── SCREEN ROUTER ──────────────────────────────────────────────────────────
@@ -1052,6 +1054,7 @@ async function joinSession() {
   state.isPaused = session.is_paused;
   state.startedAt = session.phase_started_at;
   state.pausedDuration = session.paused_duration || 0;
+  state.participantCount = (session.participant_count || 0) + 1;
 
   // increment participant count
   await db.from('tk_sessions').update({
@@ -1090,6 +1093,13 @@ function renderActiveScreen() {
   renderPhaseList();
   renderClocks();
   startTick();
+
+  // show participant count if we have it
+  const countEl = document.getElementById('active-participant-count');
+  if (countEl && state.participantCount) {
+    countEl.textContent = state.participantCount === 1 ? '1 participant' : `${state.participantCount} participants`;
+  }
+
   showScreen('screen-active');
 }
 
@@ -1474,10 +1484,19 @@ function handleSessionUpdate(data) {
   state.pausedAt        = data.paused_at;
   state.pausedDuration  = data.paused_duration || 0;
 
+  // track participant count
+  state.participantCount = data.participant_count || 0;
+
   // update waiting room participant count (host)
   if (data.status === 'waiting' && state.role === 'host') {
-    updateWaitingCount(data.participant_count || 0);
+    updateWaitingCount(state.participantCount);
     return;
+  }
+
+  // update count on active screen
+  const countEl = document.getElementById('active-participant-count');
+  if (countEl && state.participantCount) {
+    countEl.textContent = state.participantCount === 1 ? '1 participant' : `${state.participantCount} participants`;
   }
 
   // participant was waiting — session just started

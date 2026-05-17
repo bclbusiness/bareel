@@ -1290,17 +1290,23 @@ async function advancePhase() {
 }
 
 async function skipPhase() {
-  const nextIdx = state.currentPhaseIdx + 1;
-  if (nextIdx >= state.phases.length) {
+  // fetch fresh session data so we have the latest phases (in case mode was switched)
+  const { data: fresh } = await db.from('tk_sessions').select('*').eq('id', state.sessionId).single();
+  if (!fresh) return;
+
+  const phases    = fresh.phases;
+  const nextIdx   = (fresh.current_phase_idx || 0) + 1;
+
+  if (nextIdx >= phases.length) {
     await db.from('tk_sessions').update({ status: 'complete' }).eq('id', state.sessionId);
     return;
   }
 
   const now = Date.now();
-  // recalculate session_started_at so that total elapsed = sum of completed phases
-  // this keeps both clocks in sync after a skip
-  const completedSecs = state.phases.slice(0, nextIdx).reduce((a, p) => a + p.seconds, 0);
-  const adjustedSessionStart = new Date(now - completedSecs * 1000 - state.pausedDuration * 1000).toISOString();
+  const pausedDuration = fresh.paused_duration || 0;
+  // recalculate session_started_at so total elapsed = sum of all completed phases
+  const completedSecs = phases.slice(0, nextIdx).reduce((a, p) => a + p.seconds, 0);
+  const adjustedSessionStart = new Date(now - completedSecs * 1000 - pausedDuration * 1000).toISOString();
   const nowISO = new Date(now).toISOString();
 
   await db.from('tk_sessions').update({
@@ -1393,8 +1399,11 @@ async function saveEdit() {
     paused_at: null,
     paused_duration: 0,
     phase_started_at: now,
-    session_started_at: now,  // always reset so timer starts fresh
+    session_started_at: now,
   }).eq('id', state.sessionId);
+
+  // update localStorage so create screen shows correct settings next visit
+  saveHostSettings(name, editMode, phases);
 
   closeEditModal();
 }
@@ -1513,10 +1522,11 @@ async function saveWaitingEdit() {
 
   if (error) { showError('wedit-error', 'Could not save. Please try again.'); return; }
 
-  // update local state
+  // update local state and localStorage
   state.sessionName = name;
   state.mode = editMode;
   state.phases = phases;
+  saveHostSettings(name, editMode, phases);
   document.getElementById('waiting-session-name').textContent = name;
 
   // show saved

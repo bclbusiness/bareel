@@ -1635,10 +1635,12 @@ function loadHostSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('bareel_tk_settings'));
     if (!saved) {
-      // nothing saved — add default phases
+      // nothing saved — default to phased mode with example phases
+      setMode('phased');
       addPhase('Planning', 10 * 60);
       addPhase('Discussion', 20 * 60);
       addPhase('Wrapping Up', 5 * 60);
+      updateTotal();
       return;
     }
     if (saved.name) document.getElementById('session-name').value = saved.name;
@@ -1657,9 +1659,11 @@ function loadHostSettings() {
     }
   } catch(e) {
     // on error fall back to defaults
+    setMode('phased');
     addPhase('Planning', 10 * 60);
     addPhase('Discussion', 20 * 60);
     addPhase('Wrapping Up', 5 * 60);
+    updateTotal();
   }
 }
 

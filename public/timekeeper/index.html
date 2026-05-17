@@ -696,9 +696,10 @@ let state = {
   phases: [],          // [{name, seconds}]
   currentPhaseIdx: 0,
   isPaused: false,
-  startedAt: null,     // ISO string when current phase started
+  startedAt: null,       // ISO string when current phase started
+  sessionStartedAt: null, // ISO string when session first started (never changes)
   pausedAt: null,
-  pausedDuration: 0,   // seconds paused so far in this phase
+  pausedDuration: 0,     // total seconds paused across entire session
   subscription: null,
   pollInterval: null,
   tickInterval: null,
@@ -1020,8 +1021,10 @@ async function startSession() {
   await db.from('tk_sessions').update({
     status: 'active',
     phase_started_at: now,
+    session_started_at: now,
   }).eq('id', state.sessionId);
   state.startedAt = now;
+  state.sessionStartedAt = now;
   renderActiveScreen();
 }
 
@@ -1054,8 +1057,9 @@ async function joinSession() {
   state.phases = session.phases;
   state.currentPhaseIdx = session.current_phase_idx;
   state.isPaused = session.is_paused;
-  state.startedAt = session.phase_started_at;
-  state.pausedDuration = session.paused_duration || 0;
+  state.startedAt        = session.phase_started_at;
+  state.sessionStartedAt = session.session_started_at || null;
+  state.pausedDuration   = session.paused_duration || 0;
   state.participantCount = (session.participant_count || 0) + 1;
 
   // increment participant count
@@ -1193,19 +1197,37 @@ function renderClocks() {
 }
 
 function updateClocks() {
-  const now = Date.now();
-  const phaseStarted  = new Date(state.startedAt).getTime();
-  const elapsed = state.isPaused
-    ? (new Date(state.pausedAt).getTime() - phaseStarted - state.pausedDuration * 1000)
-    : (now - phaseStarted - state.pausedDuration * 1000);
+  if (!state.startedAt) return;
 
-  const currentPhase  = state.phases[state.currentPhaseIdx];
-  const phaseTotal    = (currentPhase?.seconds || 0) * 1000;
-  const phaseLeft     = Math.max(0, phaseTotal - elapsed) / 1000;
+  const now = state.isPaused
+    ? new Date(state.pausedAt).getTime()
+    : Date.now();
 
-  // total remaining
-  const futurePhasesSecs = state.phases.slice(state.currentPhaseIdx + 1).reduce((a, p) => a + p.seconds, 0);
-  const totalLeft = phaseLeft + futurePhasesSecs;
+  // ── Total remaining ────────────────────────────────────────────────────
+  // Derive from session_started_at so both clocks share one source of truth
+  const sessionTotal = state.phases.reduce((a, p) => a + p.seconds, 0);
+
+  let totalElapsed;
+  if (state.sessionStartedAt) {
+    // elapsed since session start, minus total paused duration
+    totalElapsed = (now - new Date(state.sessionStartedAt).getTime()) / 1000 - state.pausedDuration;
+  } else {
+    // fallback: sum completed phases + elapsed in current phase
+    const completedSecs = state.phases.slice(0, state.currentPhaseIdx).reduce((a, p) => a + p.seconds, 0);
+    const phaseElapsed  = (now - new Date(state.startedAt).getTime()) / 1000 - state.pausedDuration;
+    totalElapsed = completedSecs + phaseElapsed;
+  }
+
+  totalElapsed = Math.max(0, totalElapsed);
+  const totalLeft = Math.max(0, sessionTotal - totalElapsed);
+
+  // ── Phase remaining ────────────────────────────────────────────────────
+  // Work out where we are within the current phase using total elapsed
+  const completedBeforeCurrent = state.phases.slice(0, state.currentPhaseIdx).reduce((a, p) => a + p.seconds, 0);
+  const currentPhase = state.phases[state.currentPhaseIdx];
+  const phaseTotal   = currentPhase?.seconds || 0;
+  const elapsedInCurrentPhase = Math.max(0, totalElapsed - completedBeforeCurrent);
+  const phaseLeft = Math.max(0, phaseTotal - elapsedInCurrentPhase);
 
   updateFlipDisplay('phase-clock', phaseLeft);
   updateFlipDisplay('total-clock', totalLeft);
@@ -1236,7 +1258,7 @@ async function advancePhase() {
     current_phase_idx: nextIdx,
     phase_started_at: new Date().toISOString(),
     paused_at: null,
-    paused_duration: 0,
+    // keep paused_duration accumulating across phases
   }).eq('id', state.sessionId);
 }
 
@@ -1251,7 +1273,7 @@ async function skipPhase() {
     phase_started_at: new Date().toISOString(),
     is_paused: false,
     paused_at: null,
-    paused_duration: 0,
+    // keep paused_duration accumulating across phases
   }).eq('id', state.sessionId);
 }
 
@@ -1483,9 +1505,10 @@ function handleSessionUpdate(data) {
   state.phases          = data.phases;
   state.currentPhaseIdx = data.current_phase_idx;
   state.isPaused        = data.is_paused;
-  state.startedAt       = data.phase_started_at;
-  state.pausedAt        = data.paused_at;
-  state.pausedDuration  = data.paused_duration || 0;
+  state.startedAt        = data.phase_started_at;
+  state.sessionStartedAt = data.session_started_at || state.sessionStartedAt;
+  state.pausedAt         = data.paused_at;
+  state.pausedDuration   = data.paused_duration || 0;
 
   // track participant count
   state.participantCount = data.participant_count || 0;

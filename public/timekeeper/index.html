@@ -1595,7 +1595,13 @@ function saveHostSettings(name, mode, phases) {
 function loadHostSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('bareel_tk_settings'));
-    if (!saved) return;
+    if (!saved) {
+      // nothing saved — add default phases
+      addPhase('Planning', 10 * 60);
+      addPhase('Discussion', 20 * 60);
+      addPhase('Wrapping Up', 5 * 60);
+      return;
+    }
     if (saved.name) document.getElementById('session-name').value = saved.name;
     if (saved.mode) setMode(saved.mode);
     if (saved.mode === 'simple' && saved.phases?.[0]) {
@@ -1604,8 +1610,18 @@ function loadHostSettings() {
     }
     if (saved.mode === 'phased' && saved.phases?.length) {
       saved.phases.forEach(p => addPhase(p.name, p.seconds));
+    } else if (saved.mode === 'phased') {
+      // saved as phased but no phases — add defaults
+      addPhase('Planning', 10 * 60);
+      addPhase('Discussion', 20 * 60);
+      addPhase('Wrapping Up', 5 * 60);
     }
-  } catch(e) {}
+  } catch(e) {
+    // on error fall back to defaults
+    addPhase('Planning', 10 * 60);
+    addPhase('Discussion', 20 * 60);
+    addPhase('Wrapping Up', 5 * 60);
+  }
 }
 
 // ── RUN ANOTHER ────────────────────────────────────────────────────────────
@@ -1643,10 +1659,6 @@ function buildCodeInputs() {
 // ── INIT ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
-  // add default phases
-  addPhase('Planning', 10 * 60);
-  addPhase('Discussion', 20 * 60);
-  addPhase('Wrapping Up', 5 * 60);
 
   const urlParams = new URLSearchParams(window.location.search);
   const prefilledCode = urlParams.get('code');

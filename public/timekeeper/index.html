@@ -291,6 +291,7 @@
   <span class="brand-name">Bareel</span>
   <span class="brand-sub">Timekeeper</span>
   <span class="badge hidden" id="topbar-badge">Host</span>
+  <span class="hidden" id="topbar-participant-count" style="font-size:12px;color:var(--text-secondary);margin-left:8px"></span>
 </header>
 
 <!-- ═══════════════════════════════════════════
@@ -326,7 +327,7 @@
       <div class="field" id="field-simple">
         <label>Duration <span style="font-size:11px;color:var(--text-tertiary);font-weight:400">— max 4 hours</span></label>
         <div class="phase-time-wrap" style="justify-content:flex-start;gap:8px">
-          <select id="simple-h" onchange="updateSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option></select>
+          <select id="simple-h" onchange="updateSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option></select>
           <span class="phase-time-sep">h</span>
           <select id="simple-m" onchange="updateSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
           <span class="phase-time-sep">m</span>
@@ -391,7 +392,7 @@
 
       <div class="session-name-lbl" id="active-session-name"></div>
       <div class="phase-name-lbl" id="active-phase-name"></div>
-      <div style="font-size:12px;color:var(--text-tertiary)" id="active-participant-count"></div>
+      <div style="font-size:12px;color:var(--text-tertiary);display:none" id="active-participant-count"></div>
 
       <div>
         <div class="clock-label">Current phase</div>
@@ -493,7 +494,7 @@
       <div class="field" id="wedit-field-simple">
         <label>Duration <span style="font-size:11px;color:var(--text-tertiary);font-weight:400">— max 4 hours</span></label>
         <div class="phase-time-wrap" style="justify-content:flex-start;gap:8px">
-          <select id="wedit-simple-h" onchange="updateWEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option></select>
+          <select id="wedit-simple-h" onchange="updateWEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option></select>
           <span class="phase-time-sep">h</span>
           <select id="wedit-simple-m" onchange="updateWEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
           <span class="phase-time-sep">m</span>
@@ -612,7 +613,7 @@
     <div class="field" id="edit-field-simple">
       <label>Duration <span style="font-size:11px;color:var(--text-tertiary);font-weight:400">— max 4 hours</span></label>
       <div class="phase-time-wrap" style="justify-content:flex-start;gap:8px">
-        <select id="edit-simple-h" onchange="updateEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option></select>
+        <select id="edit-simple-h" onchange="updateEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option></select>
         <span class="phase-time-sep">h</span>
         <select id="edit-simple-m" onchange="updateEditSimpleTotal()" style="width:64px"><option value="0">00</option><option value="1">01</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
         <span class="phase-time-sep">m</span>
@@ -711,8 +712,10 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
   const logo = document.getElementById('topbar-logo-link');
   const badge = document.getElementById('topbar-badge');
-  logo.href = state.role === 'participant' ? '/' : '/';
+  const topbarCount = document.getElementById('topbar-participant-count');
+  logo.href = '/';
   badge.classList.toggle('hidden', id !== 'screen-active' || state.role !== 'host');
+  if (topbarCount) topbarCount.classList.toggle('hidden', id !== 'screen-active' || state.role !== 'host');
 }
 
 // ── MODE SELECTOR ──────────────────────────────────────────────────────────
@@ -1093,10 +1096,13 @@ function renderActiveScreen() {
   renderClocks();
   startTick();
 
-  // show participant count if we have it
-  const countEl = document.getElementById('active-participant-count');
-  if (countEl && state.participantCount) {
-    countEl.textContent = state.participantCount === 1 ? '1 participant' : `${state.participantCount} participants`;
+  // show topbar participant count for host
+  if (state.role === 'host') {
+    const topbarCount = document.getElementById('topbar-participant-count');
+    if (topbarCount) {
+      topbarCount.classList.remove('hidden');
+      topbarCount.textContent = state.participantCount === 1 ? '1 participant' : `${state.participantCount} participants`;
+    }
   }
 
   showScreen('screen-active');
@@ -1490,10 +1496,13 @@ function handleSessionUpdate(data) {
     return;
   }
 
-  // update count on active screen
-  const countEl = document.getElementById('active-participant-count');
-  if (countEl && state.participantCount) {
-    countEl.textContent = state.participantCount === 1 ? '1 participant' : `${state.participantCount} participants`;
+  // update topbar participant count for host
+  if (state.role === 'host') {
+    const topbarCount = document.getElementById('topbar-participant-count');
+    if (topbarCount && document.getElementById('screen-active').classList.contains('active')) {
+      topbarCount.classList.remove('hidden');
+      topbarCount.textContent = state.participantCount === 1 ? '1 participant' : `${state.participantCount} participants`;
+    }
   }
 
   // participant was waiting — session just started

@@ -395,13 +395,13 @@
       <div style="font-size:12px;color:var(--text-tertiary);display:none" id="active-participant-count"></div>
 
       <div>
-        <div class="clock-label">Current phase</div>
+        <div class="clock-label" id="phase-clock-label">Current phase</div>
         <div class="flip-clock" id="phase-clock">
           <!-- rendered by JS -->
         </div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:16px">
+      <div style="display:flex;align-items:center;gap:16px" id="total-clock-wrap">
         <div style="width:1px;height:40px;background:var(--border)"></div>
         <div style="text-align:center">
           <div class="clock-label">Total remaining</div>
@@ -1192,6 +1192,22 @@ function updateFlipDisplay(containerId, totalSecs) {
 function renderClocks() {
   buildFlockHTML('phase-clock', true);
   buildFlockHTML('total-clock', false);
+
+  // show/hide secondary clock and update label based on mode
+  const totalWrap = document.getElementById('total-clock-wrap');
+  const phaseLabel = document.getElementById('phase-clock-label');
+  const skipBtn = document.getElementById('btn-skip');
+
+  if (state.mode === 'simple') {
+    if (totalWrap) totalWrap.style.display = 'none';
+    if (phaseLabel) phaseLabel.textContent = 'Time remaining';
+    if (skipBtn) skipBtn.classList.add('hidden');
+  } else {
+    if (totalWrap) totalWrap.style.display = 'flex';
+    if (phaseLabel) phaseLabel.textContent = 'Current phase';
+    if (skipBtn) skipBtn.classList.remove('hidden');
+  }
+
   updateClocks();
 }
 
@@ -1344,13 +1360,15 @@ async function saveEdit() {
     if (phases.length === 0) { showError('edit-error', 'Please add at least one phase.'); return; }
   }
 
+  const now = new Date().toISOString();
   await db.from('tk_sessions').update({
     name, mode: editMode, phases,
     current_phase_idx: 0,
     is_paused: false,
     paused_at: null,
     paused_duration: 0,
-    phase_started_at: new Date().toISOString(),
+    phase_started_at: now,
+    session_started_at: now,  // always reset so timer starts fresh
   }).eq('id', state.sessionId);
 
   closeEditModal();
@@ -1550,10 +1568,11 @@ function handleSessionUpdate(data) {
     renderClocks();
   }
 
-  // session was edited — re-render everything
-  if (data.name !== document.getElementById('active-session-name').textContent) {
-    document.getElementById('active-session-name').textContent = data.name;
-    renderClocks();
+  // session was edited (name or mode changed) — re-render everything
+  const nameEl = document.getElementById('active-session-name');
+  if (data.name !== nameEl?.textContent || data.mode !== state.mode) {
+    if (nameEl) nameEl.textContent = data.name;
+    renderClocks(); // re-renders clocks and shows/hides secondary clock
   }
 
   renderPhaseList();

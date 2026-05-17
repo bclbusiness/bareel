@@ -1266,33 +1266,41 @@ async function advancePhase() {
     await db.from('tk_sessions').update({ status: 'complete' }).eq('id', state.sessionId);
     return;
   }
-
+  const nowISO = new Date().toISOString();
+  // optimistic local update so tick doesn't flicker
+  state.currentPhaseIdx = nextIdx;
+  state.startedAt       = nowISO;
+  state.pausedDuration  = 0;
+  state.isPaused        = false;
   await db.from('tk_sessions').update({
     current_phase_idx: nextIdx,
-    phase_started_at: new Date().toISOString(),
+    phase_started_at: nowISO,
     paused_at: null,
-    paused_duration: 0,  // reset per phase — phase clock is the source of truth
+    paused_duration: 0,
   }).eq('id', state.sessionId);
 }
 
 async function skipPhase() {
-  // fetch latest from DB to ensure we have current phase index and phases
-  const { data: fresh } = await db.from('tk_sessions').select('current_phase_idx, phases').eq('id', state.sessionId).single();
-  if (!fresh) return;
-
-  const nextIdx = (fresh.current_phase_idx || 0) + 1;
-  if (nextIdx >= (fresh.phases || state.phases).length) {
+  const nextIdx = state.currentPhaseIdx + 1;
+  if (nextIdx >= state.phases.length) {
     await db.from('tk_sessions').update({ status: 'complete' }).eq('id', state.sessionId);
     return;
   }
-  // reset phase clock — total remaining recalculates automatically as phaseLeft + future phases
+  const nowISO = new Date().toISOString();
+  // update local state immediately so tick interval uses correct values right away
+  state.currentPhaseIdx = nextIdx;
+  state.startedAt       = nowISO;
+  state.pausedDuration  = 0;
+  state.isPaused        = false;
+  // write to DB
   await db.from('tk_sessions').update({
     current_phase_idx: nextIdx,
-    phase_started_at: new Date().toISOString(),
+    phase_started_at: nowISO,
     is_paused: false,
     paused_at: null,
     paused_duration: 0,
   }).eq('id', state.sessionId);
+  renderPhaseList();
 }
 
 // ── PAUSE ──────────────────────────────────────────────────────────────────
@@ -1692,7 +1700,12 @@ function runAnother() {
   clearInterval(state.tickInterval);
   if (state.subscription) state.subscription.unsubscribe();
   if (state.pollInterval) clearInterval(state.pollInterval);
-  state = { role:'host', sessionId:null, sessionCode:null, sessionName:'', mode:'simple', phases:[], currentPhaseIdx:0, isPaused:false, startedAt:null, pausedAt:null, pausedDuration:0, subscription:null, pollInterval:null, tickInterval:null, lastFlipValues:{} };
+  state = { role:'host', sessionId:null, sessionCode:null, sessionName:'', mode:'simple', phases:[], currentPhaseIdx:0, isPaused:false, startedAt:null, pausedAt:null, pausedDuration:0, subscription:null, pollInterval:null, tickInterval:null, lastFlipValues:{}, participantCount:0 };
+  // clear phase container to prevent accumulation
+  const pc = document.getElementById('phases-container');
+  if (pc) pc.innerHTML = '';
+  const nameEl = document.getElementById('session-name');
+  if (nameEl) nameEl.value = '';
   loadHostSettings();
   showScreen('screen-setup');
 }

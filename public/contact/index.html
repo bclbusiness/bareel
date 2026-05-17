@@ -415,6 +415,16 @@
           </div>
         </div>
       </div>
+      <div class="field" style="margin-top:8px">
+        <label>Response visibility</label>
+        <label for="responses-visible" style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer">
+          <input type="checkbox" id="responses-visible" checked style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;flex-shrink:0" />
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Show responses on screen</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Uncheck if you're screensharing and don't want others to see submitted details</div>
+          </div>
+        </label>
+      </div>
       <div class="error-msg" id="setup-error"></div>
       <hr class="divider" />
       <button class="btn btn-primary btn-full" id="btn-create" onclick="createSession()">
@@ -437,7 +447,7 @@
     <div class="code-display">
       <div class="section-label">Share this code to join</div>
       <div class="code-digits" id="active-code-digits"></div>
-      <div class="code-url">bareel.app/?join</div>
+      <div class="code-url">bareel.app</div>
       <div class="qr-section">
         <button class="qr-toggle" onclick="toggleQR()">
           <i class="ti ti-qrcode" aria-hidden="true"></i>
@@ -454,21 +464,32 @@
 
     <div class="resp-header">
       <div class="section-label" style="margin-bottom:0">Responses</div>
-      <div style="font-size:12px;color:var(--text-secondary)" id="resp-count-label">0 received</div>
-    </div>
-
-    <div class="responses-wrap">
-      <div class="resp-row hdr" id="resp-header-row"></div>
-      <div id="responses-list">
-        <div style="text-align:center;padding:24px;font-size:13px;color:var(--text-tertiary)">
-          Waiting for responses...
-        </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:12px;color:var(--text-secondary)" id="resp-count-label">0 received</div>
+        <button class="btn btn-ghost btn-sm" id="btn-toggle-responses" onclick="toggleResponsesTable()" style="font-size:12px;padding:5px 12px">
+          <i class="ti ti-eye" aria-hidden="true" id="toggle-responses-icon" style="font-size:13px"></i>
+          <span id="toggle-responses-label">Show responses</span>
+        </button>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:20px" id="message-note"></div>
+
+    <div id="responses-table-wrap" style="display:none">
+      <div class="responses-wrap">
+        <div class="resp-row hdr" id="resp-header-row"></div>
+        <div id="responses-list">
+          <div style="text-align:center;padding:24px;font-size:13px;color:var(--text-tertiary)">
+            Waiting for responses...
+          </div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);display:none" id="message-note">Any custom messages included in participant responses will be included in the CSV export.</div>
+    </div>
 
     <div style="display:flex;gap:12px;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="endSession()">End session</button>
+      <button class="btn btn-outline" onclick="exportCSV()" style="display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-download" aria-hidden="true" style="font-size:13px"></i> Export CSV
+      </button>
     </div>
   </div>
 </div>
@@ -512,6 +533,9 @@
       <button class="btn btn-primary btn-full" id="btn-submit" onclick="submitForm()">
         Submit details
       </button>
+      <button class="btn btn-ghost btn-full" id="btn-cancel-edit" onclick="cancelEdit()" style="margin-top:8px;display:none">
+        Cancel
+      </button>
     </div>
   </div>
 </div>
@@ -526,7 +550,10 @@
         <i class="ti ti-check" aria-hidden="true" style="font-size:28px;color:#0F6E56"></i>
       </div>
       <div style="font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Thanks, your details have been received!</div>
-      <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">Your information has been shared with the session host. You can close this page.</div>
+      <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px">Your information has been shared with the session host. You can close this page.</div>
+      <button class="btn btn-ghost btn-sm" onclick="editResponse()" style="display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-pencil" aria-hidden="true" style="font-size:13px"></i> Edit response
+      </button>
     </div>
   </div>
 </div>
@@ -541,7 +568,7 @@
         <i class="ti ti-address-book" aria-hidden="true" style="font-size:28px;color:var(--brand)"></i>
       </div>
       <div style="font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:6px">Session complete</div>
-      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:6px">Thank you for using Bareel Contact Form!</div>
+      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:6px">Thank you for using the Bareel Contact Form!</div>
       <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:28px" id="ended-count"></div>
       <button class="btn btn-outline" onclick="exportCSV()" style="display:inline-flex;align-items:center;gap:8px">
         <i class="ti ti-download" aria-hidden="true" style="font-size:14px"></i>
@@ -618,6 +645,7 @@ let state = {
   responses: [],
   subscription: null,
   pollInterval: null,
+  responsesVisible: true,
 };
 
 // ── SCREEN ROUTER ──────────────────────────────────────────────────────────
@@ -629,7 +657,7 @@ function showScreen(id) {
   const liveEl = document.getElementById('topbar-live');
   badge.classList.add('hidden');
   liveEl.classList.add('hidden');
-  logo.href = state.role === 'participant' ? '/?join' : '/';
+  logo.href = '/';
   if (id === 'screen-active') {
     badge.classList.remove('hidden');
     liveEl.classList.remove('hidden');
@@ -684,9 +712,11 @@ function closeOnboarding() {
 // ── LOCALSTORAGE — HOST ─────────────────────────────────────────────────────
 function saveHostSettings() {
   const fields = getSelectedFields();
+  const responsesVisibleSetting = document.getElementById('responses-visible')?.checked ?? true;
   localStorage.setItem('bareel_cf_host', JSON.stringify({
     name: document.getElementById('session-name').value.trim(),
     fields,
+    responsesVisible: responsesVisibleSetting,
   }));
 }
 
@@ -699,6 +729,10 @@ function loadHostSettings() {
       document.querySelectorAll('.field-option').forEach(el => {
         el.classList.toggle('selected', saved.fields.includes(el.dataset.field));
       });
+    }
+    if (saved.responsesVisible === false) {
+      const cb = document.getElementById('responses-visible');
+      if (cb) cb.checked = false;
     }
   } catch(e) {}
 }
@@ -735,6 +769,8 @@ async function createSession() {
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
 
+  const responsesVisible = document.getElementById('responses-visible').checked;
+
   const { data, error } = await db.from('cf_sessions').insert({
     code, name,
     fields,
@@ -755,6 +791,7 @@ async function createSession() {
   state.sessionId = data.id;
   state.sessionCode = code;
   state.selectedFields = fields;
+  state.responsesVisible = responsesVisible;
 
   renderActiveScreen(data);
   subscribeToSession(data.id);
@@ -784,7 +821,7 @@ function renderActiveScreen(session) {
   hdr.innerHTML = cols.map(f => `<span>${FIELD_LABELS[f]}</span>`).join('') + '<span>Submitted</span>';
 
   if (state.selectedFields.includes('message')) {
-    document.getElementById('message-note').textContent = 'Messages included in CSV export.';
+    document.getElementById('message-note').style.display = 'block';
   }
 
   showScreen('screen-active');
@@ -803,6 +840,11 @@ function renderResponses() {
 
   if (n === 0) {
     list.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:var(--text-tertiary)">Waiting for responses...</div>';
+    return;
+  }
+
+  if (!state.responsesVisible) {
+    list.innerHTML = `<div style="text-align:center;padding:24px;font-size:13px;color:var(--text-secondary)"><i class="ti ti-eye-off" style="font-size:20px;display:block;margin-bottom:8px;color:var(--text-tertiary)"></i>Response details hidden — ${n} response${n !== 1 ? 's' : ''} received.<br><span style="font-size:12px;color:var(--text-tertiary)">Details visible in CSV export.</span></div>`;
     return;
   }
 
@@ -1006,6 +1048,45 @@ function buildCodeInputs() {
     });
     wrap.appendChild(inp);
   }
+}
+
+// ── EDIT RESPONSE ─────────────────────────────────────────────────────────
+let isEditing = false;
+
+function editResponse() {
+  isEditing = true;
+  // re-render form with saved details
+  const saved = loadParticipantDetails();
+  // also restore message if we have it in state
+  const container = document.getElementById('form-fields');
+  // pre-fill from saved
+  state.selectedFields.forEach(field => {
+    const el = document.getElementById(`field_${field}`);
+    if (el && saved[field]) el.value = saved[field];
+  });
+  // update button labels
+  document.getElementById('btn-submit').textContent = 'Save changes';
+  document.getElementById('btn-cancel-edit').style.display = 'block';
+  showScreen('screen-form');
+}
+
+function cancelEdit() {
+  isEditing = false;
+  document.getElementById('btn-submit').innerHTML = 'Submit details';
+  document.getElementById('btn-cancel-edit').style.display = 'none';
+  showScreen('screen-thanks');
+}
+
+// ── TOGGLE RESPONSES TABLE ───────────────────────────────────────────────
+function toggleResponsesTable() {
+  const wrap    = document.getElementById('responses-table-wrap');
+  const label   = document.getElementById('toggle-responses-label');
+  const icon    = document.getElementById('toggle-responses-icon');
+  const visible = wrap.style.display !== 'none';
+  wrap.style.display  = visible ? 'none' : 'block';
+  label.textContent   = visible ? 'Show responses' : 'Hide responses';
+  icon.className      = visible ? 'ti ti-eye' : 'ti ti-eye-off';
+  icon.style.fontSize = '13px';
 }
 
 // ── UTILITIES ──────────────────────────────────────────────────────────────

@@ -1409,15 +1409,20 @@ function toggleWaitingEdit() {
   document.getElementById('wedit-name').value = state.sessionName;
   setWEditMode(state.mode);
 
-  if (state.mode === 'simple') {
-    setSimpleSecs('wedit-simple', state.phases[0]?.seconds || 0);
-    updateWEditSimpleTotal();
-  } else {
-    const container = document.getElementById('wedit-phases-container');
-    container.innerHTML = '';
-    state.phases.forEach(p => addWEditPhase(p.name, p.seconds));
-    updateWEditTotal();
-  }
+  // always pre-fill simple duration
+  const simpleSecs = state.mode === 'simple' ? (state.phases[0]?.seconds || 600) : 600;
+  setSimpleSecs('wedit-simple', simpleSecs);
+  updateWEditSimpleTotal();
+
+  // always pre-fill phased container so defaults are ready if host switches
+  const container = document.getElementById('wedit-phases-container');
+  container.innerHTML = '';
+  const hasRealPhases = state.mode === 'phased' && state.phases.length > 1;
+  const phasesToShow = hasRealPhases
+    ? state.phases
+    : [{ name: 'Planning', seconds: 600 }, { name: 'Discussion', seconds: 1200 }, { name: 'Wrapping Up', seconds: 300 }];
+  phasesToShow.forEach(p => addWEditPhase(p.name, p.seconds));
+  updateWEditTotal();
 
   document.getElementById('wedit-error').classList.remove('visible');
   document.getElementById('wedit-success').classList.remove('visible');

@@ -310,12 +310,12 @@
       <div class="field">
         <label>Timer mode</label>
         <div class="mode-grid">
-          <div class="mode-card selected" id="mode-simple" onclick="setMode('simple')">
+          <div class="mode-card selected" id="mode-simple" onclick="setMode('simple', true)">
             <div class="mode-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
             <div class="mode-name">Simple timer</div>
             <div class="mode-desc">One countdown, no phases</div>
           </div>
-          <div class="mode-card" id="mode-phased" onclick="setMode('phased')">
+          <div class="mode-card" id="mode-phased" onclick="setMode('phased', true)">
             <div class="mode-icon"><i class="ti ti-list-numbers" aria-hidden="true"></i></div>
             <div class="mode-name">Phased timer</div>
             <div class="mode-desc">Named phases, auto-advances</div>
@@ -722,13 +722,13 @@ function showScreen(id) {
 // ── MODE SELECTOR ──────────────────────────────────────────────────────────
 let currentMode = 'simple';
 
-function setMode(mode) {
+function setMode(mode, addDefaults = false) {
   currentMode = mode;
   document.getElementById('mode-simple').classList.toggle('selected', mode === 'simple');
   document.getElementById('mode-phased').classList.toggle('selected', mode === 'phased');
   document.getElementById('field-simple').classList.toggle('hidden', mode !== 'simple');
   document.getElementById('field-phased').classList.toggle('hidden', mode !== 'phased');
-  if (mode === 'phased') addDefaultPhasesIfEmpty();
+  if (mode === 'phased' && addDefaults) addDefaultPhasesIfEmpty();
 }
 
 function setEditMode(mode) {

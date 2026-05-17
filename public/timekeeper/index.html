@@ -1338,21 +1338,20 @@ function openEditModal() {
   document.getElementById('edit-name').value = state.sessionName;
   setEditMode(state.mode);
 
-  if (state.mode === 'simple') {
-    setSimpleSecs('edit-simple', state.phases[0]?.seconds || 0);
-    updateEditSimpleTotal();
-  } else {
-    const container = document.getElementById('edit-phases-container');
-    container.innerHTML = '';
-    // show existing phases if currently phased with real phases (more than 1, or 1 with a real name)
-    // otherwise show defaults — covers switching from simple, or first time
-    const hasRealPhases = state.mode === 'phased' && state.phases.length > 1;
-    const phasesToShow = hasRealPhases
-      ? state.phases
-      : [{ name: 'Planning', seconds: 600 }, { name: 'Discussion', seconds: 1200 }, { name: 'Wrapping Up', seconds: 300 }];
-    phasesToShow.forEach(p => addEditPhase(p.name, p.seconds));
-    updateEditTotal();
-  }
+  // always pre-fill simple duration
+  const simpleSecs = state.mode === 'simple' ? (state.phases[0]?.seconds || 600) : 600;
+  setSimpleSecs('edit-simple', simpleSecs);
+  updateEditSimpleTotal();
+
+  // always pre-fill phased container so it's ready whichever mode host switches to
+  const container = document.getElementById('edit-phases-container');
+  container.innerHTML = '';
+  const hasRealPhases = state.mode === 'phased' && state.phases.length > 1;
+  const phasesToShow = hasRealPhases
+    ? state.phases
+    : [{ name: 'Planning', seconds: 600 }, { name: 'Discussion', seconds: 1200 }, { name: 'Wrapping Up', seconds: 300 }];
+  phasesToShow.forEach(p => addEditPhase(p.name, p.seconds));
+  updateEditTotal();
 
   document.getElementById('edit-modal').classList.add('visible');
 }

@@ -826,13 +826,25 @@ function addEditPhase(name = '', seconds = 0) {
   const container = document.getElementById('edit-phases-container');
   const row = document.createElement('div');
   row.className = 'phase-row';
-  row.innerHTML = phaseRowHTML(name, 0, 0, 0).replace(/oninput="updateTotal\(\)"/g, 'onchange="updateEditTotal()"').replace(/oninput="updateTotal\(\)"/g, 'oninput="updateEditTotal()"');
-  row.querySelector('.phase-name-input').setAttribute('oninput', 'updateEditTotal()');
-  row.querySelectorAll('select').forEach(s => s.setAttribute('onchange', 'updateEditTotal()'));
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  row.innerHTML = `
+    <input type="text" class="phase-name-input" placeholder="Phase name" value="${name}" oninput="updateEditTotal()" />
+    <div class="phase-time-wrap">
+      <select class="phase-h" onchange="updateEditTotal()">${makeTimeOptions(1)}</select>
+      <span class="phase-time-sep">h</span>
+      <select class="phase-m" onchange="updateEditTotal()">${makeTimeOptions(59)}</select>
+      <span class="phase-time-sep">m</span>
+      <select class="phase-s" onchange="updateEditTotal()">${makeTimeOptions(59)}</select>
+      <span class="phase-time-sep">s</span>
+    </div>
+    <button class="btn-remove" onclick="removeEditPhaseRow(this)">×</button>`;
   container.appendChild(row);
-  if (seconds) setPhaseRowValues(row, seconds);
+  row.querySelector('.phase-h').value = h;
+  row.querySelector('.phase-m').value = m;
+  row.querySelector('.phase-s').value = s;
   updateEditTotal();
-  row.querySelector('input').focus();
 }
 
 function removePhaseRow(btn) {
@@ -1526,6 +1538,7 @@ function subscribeToSession(sessionId) {
 function handleSessionUpdate(data) {
   const phaseChanged = data.current_phase_idx !== state.currentPhaseIdx;
   const prevPhaseIdx = state.currentPhaseIdx;
+  const prevMode     = state.mode; // capture before updating
 
   state.sessionName     = data.name;
   state.mode            = data.mode;
@@ -1582,7 +1595,7 @@ function handleSessionUpdate(data) {
 
   // session was edited (name or mode changed) — re-render everything
   const nameEl = document.getElementById('active-session-name');
-  if (data.name !== nameEl?.textContent || data.mode !== state.mode) {
+  if (data.name !== nameEl?.textContent || data.mode !== prevMode) {
     if (nameEl) nameEl.textContent = data.name;
     renderClocks(); // re-renders clocks and shows/hides secondary clock
   }

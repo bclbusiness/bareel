@@ -135,6 +135,13 @@
     .app-card.soon .app-name { color: var(--text-secondary); }
     .app-card.soon .app-name span { color: var(--text-tertiary); }
     .app-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+    .app-bullets { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
+    .app-bullets li { font-size: 12px; color: var(--text-secondary); line-height: 1.4; display: flex; gap: 6px; align-items: flex-start; }
+    .app-bullets li::before { content: '•'; color: var(--brand-mid); flex-shrink: 0; margin-top: 1px; }
+    .app-bullets li.useful { border-top: 1px solid var(--border-light); padding-top: 6px; margin-top: 3px; font-style: italic; color: var(--text-tertiary); font-size: 12px; }
+    .app-bullets li.useful::before { display: none; }
+    .app-card.soon .app-bullets li::before { color: var(--text-tertiary); }
+    .app-card.soon .app-bullets li.useful { color: var(--text-tertiary); }
     .app-card.soon .app-desc { color: var(--text-tertiary); }
 
     .app-footer { display: flex; align-items: center; justify-content: space-between; }
@@ -209,9 +216,12 @@
           <div class="b-badge">B</div>
         </div>
         <div class="app-name"><span>Bareel</span> Stand Up</div>
-        <div class="app-desc">Timed, structured daily stand ups for remote teams.</div>
+        <ul class="app-bullets">
+          <li>Timed turns in random order — keeps you on track</li>
+          <li>Host can pause, skip speakers and edit settings mid-session</li>
+          <li class="useful">Useful for: In-person and remote daily stand ups</li>
+        </ul>
         <div class="app-footer">
-          <span class="badge badge-live"><span class="live-dot"></span>Live</span>
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
@@ -222,9 +232,12 @@
           <div class="b-badge">B</div>
         </div>
         <div class="app-name"><span>Bareel</span> Q&amp;A</div>
-        <div class="app-desc">Host a live Q&amp;A — audience submits questions, you answer in real time.</div>
+        <ul class="app-bullets">
+          <li>Anonymous questions submitted and upvoted in real time</li>
+          <li>Host sees the most popular questions rise to the top</li>
+          <li class="useful">Useful for: In-person and remote town halls, training sessions, product demos</li>
+        </ul>
         <div class="app-footer">
-          <span class="badge badge-live"><span class="live-dot"></span>Live</span>
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
@@ -235,9 +248,12 @@
           <div class="b-badge">B</div>
         </div>
         <div class="app-name"><span>Bareel</span> Contact Form</div>
-        <div class="app-desc">A shareable form to collect contact details and short messages instantly.</div>
+        <ul class="app-bullets">
+          <li>Collect contact details and short messages from any group</li>
+          <li>Choose which fields to include; responses export to CSV</li>
+          <li class="useful">Useful for: In-person and remote networking events, demos, training sessions</li>
+        </ul>
         <div class="app-footer">
-          <span class="badge badge-live"><span class="live-dot"></span>Live</span>
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
@@ -248,9 +264,12 @@
           <div class="b-badge">B</div>
         </div>
         <div class="app-name"><span>Bareel</span> Timekeeper</div>
-        <div class="app-desc">Structured session timers with named phases — keep every meeting on track.</div>
+        <ul class="app-bullets">
+          <li>Simple countdown or named phase timer for any session</li>
+          <li>Everyone sees the same live flip clock in real time</li>
+          <li class="useful">Useful for: In-person and remote workshops, presentations, group activities</li>
+        </ul>
         <div class="app-footer">
-          <span class="badge badge-live"><span class="live-dot"></span>Live</span>
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
@@ -261,7 +280,11 @@
           <div class="b-badge">B</div>
         </div>
         <div class="app-name"><span>Bareel</span> Feedback Form</div>
-        <div class="app-desc">Gather structured feedback from your team, clients or audience.</div>
+        <ul class="app-bullets">
+          <li>Collect structured feedback from teams or audiences</li>
+          <li>Anonymous responses with instant CSV export</li>
+          <li class="useful">Useful for: In-person and remote post-event feedback, training evaluation, performance reviews</li>
+        </ul>
         <div class="app-footer">
           <span class="badge badge-soon">Coming soon</span>
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>

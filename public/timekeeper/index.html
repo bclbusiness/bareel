@@ -1344,8 +1344,10 @@ function openEditModal() {
   } else {
     const container = document.getElementById('edit-phases-container');
     container.innerHTML = '';
-    // if switching from simple, show defaults; otherwise restore saved phases
-    const phasesToShow = (state.mode === 'phased' && state.phases.length > 0)
+    // show existing phases if currently phased with real phases (more than 1, or 1 with a real name)
+    // otherwise show defaults — covers switching from simple, or first time
+    const hasRealPhases = state.mode === 'phased' && state.phases.length > 1;
+    const phasesToShow = hasRealPhases
       ? state.phases
       : [{ name: 'Planning', seconds: 600 }, { name: 'Discussion', seconds: 1200 }, { name: 'Wrapping Up', seconds: 300 }];
     phasesToShow.forEach(p => addEditPhase(p.name, p.seconds));

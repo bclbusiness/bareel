@@ -70,7 +70,7 @@ try {
   if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
 } catch(e) { console.warn('Bareel: Supabase init failed', e); }
 
-const TOOL_PATHS = { 'standup': '/standup/', 'qa': '/qa/', 'contact': '/contact/', 'timekeeper': '/timekeeper/' };
+const TOOL_PATHS = { 'qa': '/qa/', 'contact': '/contact/', 'timekeeper': '/timekeeper/' };
 
 function buildCodeInputs() {
   const wrap = document.getElementById('code-input-boxes');
@@ -96,22 +96,16 @@ async function findRoom() {
   if (code.length < 6) { errEl.textContent = 'Please enter the full 6-digit code.'; errEl.classList.add('visible'); return; }
   btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
   let toolType = null;
-  const { data: room } = await db.from('rooms').select('tool_type, status').eq('code', code).single();
-  if (room) {
-    if (room.status === 'complete') { btn.innerHTML = 'Find session'; btn.disabled = false; errEl.textContent = 'This session has already finished.'; errEl.classList.add('visible'); return; }
-    toolType = room.tool_type || 'standup';
+  const { data: qaSession } = await db.from('qa_sessions').select('tool_type').eq('code', code).single();
+  if (qaSession) {
+    toolType = qaSession.tool_type || 'qa';
   } else {
-    const { data: qaSession } = await db.from('qa_sessions').select('tool_type').eq('code', code).single();
-    if (qaSession) {
-      toolType = qaSession.tool_type || 'qa';
+    const { data: cfSession } = await db.from('cf_sessions').select('tool_type').eq('code', code).single();
+    if (cfSession) {
+      toolType = cfSession.tool_type || 'contact';
     } else {
-      const { data: cfSession } = await db.from('cf_sessions').select('tool_type').eq('code', code).single();
-      if (cfSession) {
-        toolType = cfSession.tool_type || 'contact';
-      } else {
-        const { data: tkSession } = await db.from('tk_sessions').select('tool_type').eq('code', code).single();
-        if (tkSession) toolType = tkSession.tool_type || 'timekeeper';
-      }
+      const { data: tkSession } = await db.from('tk_sessions').select('tool_type').eq('code', code).single();
+      if (tkSession) toolType = tkSession.tool_type || 'timekeeper';
     }
   }
   btn.innerHTML = 'Find session'; btn.disabled = false;

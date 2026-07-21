@@ -70,7 +70,7 @@ try {
   if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
 } catch(e) { console.warn('Bareel: Supabase init failed', e); }
 
-const TOOL_PATHS = { 'qa': '/qa/', 'contact': '/contact/', 'timekeeper': '/timekeeper/' };
+const TOOL_PATHS = { 'qa': '/qa/', 'contact': '/contact/', 'timekeeper': '/timekeeper/', 'numero': '/numero/' };
 
 function buildCodeInputs() {
   const wrap = document.getElementById('code-input-boxes');
@@ -105,7 +105,12 @@ async function findRoom() {
       toolType = cfSession.tool_type || 'contact';
     } else {
       const { data: tkSession } = await db.from('tk_sessions').select('tool_type').eq('code', code).single();
-      if (tkSession) toolType = tkSession.tool_type || 'timekeeper';
+      if (tkSession) {
+        toolType = tkSession.tool_type || 'timekeeper';
+      } else {
+        const { data: numSession } = await db.from('numero_sessions').select('tool_type').eq('code', code).single();
+        if (numSession) toolType = numSession.tool_type || 'numero';
+      }
     }
   }
   btn.innerHTML = 'Find session'; btn.disabled = false;

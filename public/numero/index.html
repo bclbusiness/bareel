@@ -350,7 +350,7 @@
             id="timer-ring-progress"/>
         </svg>
         <div style="text-align:center">
-          <div style="font-size:42px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text-primary);line-height:1" id="game-timer-num">30</div>
+          <div style="font-size:42px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text-primary);line-height:1" id="game-timer-num">60</div>
           <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">seconds</div>
         </div>
       </div>
@@ -383,6 +383,27 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ══════════════════ SCREEN: COUNTDOWN ══════════════════ -->
+<div class="screen flex-screen" id="screen-countdown">
+  <div style="text-align:center;max-width:320px">
+    <div style="font-size:13px;font-weight:500;letter-spacing:0.5px;color:var(--text-secondary);text-transform:uppercase;margin-bottom:16px" id="countdown-round-label"></div>
+    <div style="position:relative;width:140px;height:140px;margin:0 auto 20px">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="62" fill="none" stroke="var(--border)" stroke-width="8"/>
+        <circle cx="70" cy="70" r="62" fill="none" stroke="var(--brand)" stroke-width="8"
+          stroke-dasharray="389.6" stroke-dashoffset="0"
+          stroke-linecap="round" transform="rotate(-90 70 70)"
+          id="countdown-ring"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+        <div style="font-size:56px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text-primary);line-height:1" id="countdown-num">8</div>
+      </div>
+    </div>
+    <div style="font-size:16px;font-weight:500;color:var(--text-primary);margin-bottom:6px">Get ready!</div>
+    <div style="font-size:14px;color:var(--text-secondary)" id="countdown-target-preview"></div>
   </div>
 </div>
 
@@ -480,9 +501,9 @@ let db;
 try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.warn('Supabase init failed', e); }
 
 const MODE_CONFIG = {
-  normal:  { min: 200,  max: 999,  time: 30 },
-  hard:    { min: 800,  max: 1199, time: 30 },
-  brutal:  { min: 1000, max: 1500, time: 40 },
+  normal:  { min: 200,  max: 999,  time: 60 },
+  hard:    { min: 800,  max: 1199, time: 60 },
+  brutal:  { min: 1000, max: 1500, time: 90 },
 };
 
 // ── STATE ──────────────────────────────────────────────────────────────────
@@ -652,7 +673,14 @@ async function joinSession() {
 // ── START GAME ─────────────────────────────────────────────────────────────
 async function startGame() {
   const round = await generateRound(1);
-  await db.from('numero_sessions').update({ status: 'playing', current_round: 1, ...round }).eq('id', state.sessionId);
+  // Set status to 'countdown' — round_started_at set AFTER countdown ends
+  await db.from('numero_sessions').update({
+    status: 'countdown',
+    current_round: 1,
+    round_tiles: round.round_tiles,
+    round_target: round.round_target,
+    round_started_at: null,
+  }).eq('id', state.sessionId);
 }
 
 async function generateRound(roundNum) {
@@ -1097,7 +1125,13 @@ async function showRoundResults() {
         if (state.role === 'host') {
           const nextRound = state.currentRound + 1;
           const round = await generateRound(nextRound);
-          await db.from('numero_sessions').update({ current_round: nextRound, ...round }).eq('id', state.sessionId);
+          await db.from('numero_sessions').update({
+            status: 'countdown',
+            current_round: nextRound,
+            round_tiles: round.round_tiles,
+            round_target: round.round_target,
+            round_started_at: null,
+          }).eq('id', state.sessionId);
         }
       }
     }, 1000);
@@ -1174,10 +1208,12 @@ async function playAgain() {
   state.currentRound = 0;
   state.status = 'waiting';
   await db.from('numero_sessions').update({
-    status: 'playing',
+    status: 'countdown',
     current_round: 1,
     total_rounds: playAgainRounds,
-    ...round,
+    round_tiles: round.round_tiles,
+    round_target: round.round_target,
+    round_started_at: null,
   }).eq('id', state.sessionId);
 }
 
@@ -1214,7 +1250,16 @@ function subscribeToSession(sessionId) {
 }
 
 function handleSessionUpdate(data) {
-  if (data.status === 'playing' && (state.status === 'waiting' || data.current_round !== state.currentRound)) {
+  if (data.status === 'countdown' && state.status !== 'countdown') {
+    state.status = 'countdown';
+    state.currentRound = data.current_round;
+    state.tiles = data.round_tiles || [];
+    state.target = data.round_target || 0;
+    state.mode = data.mode || state.mode;
+    state.totalRounds = data.total_rounds || state.totalRounds;
+    showCountdown(data);
+  }
+  if (data.status === 'playing' && (state.status === 'countdown' || state.status === 'waiting' || data.current_round !== state.currentRound)) {
     state.status = 'playing';
     loadRoundAndPlay(data);
   }
@@ -1223,6 +1268,42 @@ function handleSessionUpdate(data) {
     showFinalLeaderboard();
   }
   state.status = data.status;
+}
+
+// ── COUNTDOWN ─────────────────────────────────────────────────────────────
+function showCountdown(session) {
+  const roundLabel = document.getElementById('countdown-round-label');
+  const targetPreview = document.getElementById('countdown-target-preview');
+  if (roundLabel) roundLabel.textContent = `Round ${session.current_round} of ${state.totalRounds}`;
+  if (targetPreview) targetPreview.textContent = `Target: ${session.round_target}`;
+  showScreen('screen-countdown');
+
+  let secs = 8;
+  const numEl = document.getElementById('countdown-num');
+  const ring = document.getElementById('countdown-ring');
+  const circumference = 389.6;
+
+  const cdInterval = setInterval(async () => {
+    secs--;
+    if (numEl) {
+      numEl.textContent = secs;
+      numEl.style.color = secs <= 3 ? '#C0392B' : 'var(--text-primary)';
+    }
+    if (ring) {
+      ring.style.stroke = secs <= 3 ? '#C0392B' : 'var(--brand)';
+      ring.setAttribute('stroke-dashoffset', circumference * (1 - secs / 8));
+    }
+    if (secs <= 0) {
+      clearInterval(cdInterval);
+      // host sets round_started_at NOW — after countdown — so all timers are in sync
+      if (state.role === 'host') {
+        await db.from('numero_sessions').update({
+          status: 'playing',
+          round_started_at: new Date().toISOString(),
+        }).eq('id', state.sessionId);
+      }
+    }
+  }, 1000);
 }
 
 // ── ONBOARDING ─────────────────────────────────────────────────────────────

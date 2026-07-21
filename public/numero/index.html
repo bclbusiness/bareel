@@ -657,7 +657,10 @@ async function startGame() {
 
 async function generateRound(roundNum) {
   const cfg = MODE_CONFIG[state.mode];
-  const tiles = Array.from({length: 8}, () => Math.floor(Math.random() * 20) + 1);
+  // 6 small numbers (1-10) + 2 large numbers (50 or 100)
+  const small = Array.from({length: 6}, () => Math.floor(Math.random() * 10) + 1);
+  const large = Array.from({length: 2}, () => Math.random() < 0.5 ? 50 : 100);
+  const tiles = [...small, ...large].sort(() => Math.random() - 0.5);
   const target = Math.floor(Math.random() * (cfg.max - cfg.min + 1)) + cfg.min;
   return { round_tiles: tiles, round_target: target, round_started_at: new Date().toISOString() };
 }

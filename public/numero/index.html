@@ -517,7 +517,7 @@ let state = {
   workingTiles: [],   // {value, expr, sourceIdxs}
   history: [],        // stack for undo
   submitted: false, submittedValue: null, submittedTime: null,
-  roundStartedAt: null, timerInterval: null,
+  roundStartedAt: null, clientRoundStartTime: null, timerInterval: null,
   subscription: null, pollInterval: null,
   scores: {},         // participantId -> total score
   participants: {},   // participantId -> name
@@ -699,7 +699,13 @@ async function loadRoundAndPlay(session) {
   state.tiles = session.round_tiles || [];
   state.target = session.round_target || 0;
   state.roundStartedAt = session.round_started_at;
+  // Record client time NOW so timer is based on local clock from this moment
+  // This avoids drift from repeated Date.parse of DB timestamp
+  const serverElapsed = session.round_started_at
+    ? (Date.now() - new Date(session.round_started_at).getTime()) / 1000
+    : 0;
   state.timeLimit = MODE_CONFIG[session.mode || state.mode].time;
+  state.clientRoundStartTime = Date.now() - (serverElapsed * 1000);
   state.submitted = false; state.submittedValue = null; state.submittedTime = null;
   state.selectedTileIdx = null; state.selectedOp = null;
   state.workingTiles = []; state.history = [];
@@ -911,7 +917,12 @@ function resetSelection() {
 
 function updateSubmitButton() {
   const btn = document.getElementById('btn-submit');
-  if (state.submitted) return;
+  if (state.submitted) {
+    btn.disabled = true;
+    btn.textContent = 'Submitted';
+    document.getElementById('btn-undo').disabled = true;
+    return;
+  }
   // Find best tile within ±10
   const best = getBestTile();
   if (best !== null) {
@@ -991,7 +1002,7 @@ async function autoSubmit(value) {
 
 async function doSubmit(value) {
   if (state.submitted) return;
-  clearInterval(state.timerInterval);
+  // Don't clear timer — let it keep running so round ends naturally
   state.submitted = true;
   state.submittedValue = value;
   const elapsed = (Date.now() - new Date(state.roundStartedAt).getTime()) / 1000;
@@ -1006,9 +1017,34 @@ async function doSubmit(value) {
   });
 
   const exact = value === state.target;
-  document.getElementById('submitted-title').textContent = exact ? '🎯 Exact match!' : `Submitted: ${Number.isInteger(value) ? value : value.toFixed(1)}`;
-  document.getElementById('submitted-sub').textContent = exact ? 'Perfect! Waiting for other players...' : 'Waiting for other players...';
-  showScreen('screen-submitted');
+  // Show a submitted banner overlay over the game screen instead of replacing it
+  showSubmittedBanner(exact, value);
+}
+
+// ── SUBMITTED BANNER ──────────────────────────────────────────────────────
+function showSubmittedBanner(exact, value) {
+  // Remove existing banner if any
+  const existing = document.getElementById('submitted-banner');
+  if (existing) existing.remove();
+
+  const valStr = value !== null ? (Number.isInteger(value) ? value : value.toFixed(1)) : '—';
+  const banner = document.createElement('div');
+  banner.id = 'submitted-banner';
+  banner.style.cssText = `
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:${exact ? 'var(--green-light)' : 'var(--brand-light)'};
+    border:1px solid ${exact ? 'var(--green)' : '#afa9ec'};
+    color:${exact ? '#085041' : 'var(--brand-dark)'};
+    border-radius:var(--radius-lg);padding:12px 24px;
+    font-size:14px;font-weight:500;text-align:center;
+    box-shadow:var(--shadow-lg);z-index:150;
+    min-width:240px;
+  `;
+  banner.innerHTML = `
+    <div style="font-size:16px;margin-bottom:2px">${exact ? '🎯 Exact match!' : `Submitted: ${valStr}`}</div>
+    <div style="font-size:12px;opacity:0.8;font-weight:400">Waiting for the round to end...</div>
+  `;
+  document.body.appendChild(banner);
 }
 
 // ── TIMER ──────────────────────────────────────────────────────────────────
@@ -1019,11 +1055,11 @@ function startTimer() {
   const ringEl = document.getElementById(isObs ? 'obs-timer-ring-progress' : 'timer-ring-progress');
   const circumference = 175.9;
 
-  // Calculate how much time has already elapsed since round started
-  // This corrects for polling delay so all clients are in sync
+  // Use clientRoundStartTime (set at load time) so timer is accurate
+  // from the moment the client first sees the round, not from DB timestamp parsing
   const getRemaining = () => {
-    if (!state.roundStartedAt) return state.timeLimit;
-    const elapsed = (Date.now() - new Date(state.roundStartedAt).getTime()) / 1000;
+    if (!state.clientRoundStartTime) return state.timeLimit;
+    const elapsed = (Date.now() - state.clientRoundStartTime) / 1000;
     return Math.max(0, state.timeLimit - elapsed);
   };
 
@@ -1056,6 +1092,9 @@ function startTimer() {
 // ── ROUND RESULTS ──────────────────────────────────────────────────────────
 async function showRoundResults() {
   clearInterval(state.timerInterval);
+  // Remove submitted banner if present
+  const banner = document.getElementById('submitted-banner');
+  if (banner) banner.remove();
   const { data: answers } = await db.from('numero_answers').select('*').eq('session_id', state.sessionId).eq('round', state.currentRound);
   const { data: parts } = await db.from('numero_participants').select('*').eq('session_id', state.sessionId);
 
@@ -1249,12 +1288,14 @@ function subscribeToSession(sessionId) {
       }
     }
 
-    // refresh submissions for observer
-    if (data && data.status === 'playing' && state.role === 'host' && !state.hostPlaying) {
+    // refresh submissions for observer + check if all submitted
+    if (data && data.status === 'playing' && state.role === 'host') {
       const { data: ans } = await db.from('numero_answers').select('participant_id').eq('session_id', sessionId).eq('round', state.currentRound);
+      const { data: allParts } = await db.from('numero_participants').select('participant_id').eq('session_id', sessionId);
       state.roundSubmissions = {};
       (ans || []).forEach(a => { state.roundSubmissions[a.participant_id] = true; });
-      refreshObserverList();
+      if (!state.hostPlaying) refreshObserverList();
+      // (results triggered by timer expiry only)
     }
   }, 2000);
 }
@@ -1312,11 +1353,28 @@ function showCountdown(session) {
     }
     if (secs <= 0) {
       clearInterval(cdInterval);
-      // host sets round_started_at NOW — after countdown — so all timers are in sync
+      const nowISO = new Date().toISOString();
+      // Every client starts their timer immediately from local clock — no poll delay
+      state.clientRoundStartTime = Date.now();
+      state.roundStartedAt = nowISO;
+      state.timeLimit = MODE_CONFIG[state.mode].time;
+      state.submitted = false; state.submittedValue = null; state.submittedTime = null;
+      state.selectedTileIdx = null; state.selectedOp = null;
+      state.workingTiles = []; state.history = [];
+      const roundPill = document.getElementById('topbar-round');
+      if (roundPill) { roundPill.textContent = `Round ${state.currentRound} of ${state.totalRounds}`; roundPill.classList.remove('hidden'); }
+      if (state.role === 'host' && !state.hostPlaying) {
+        renderObserverView({ round_tiles: state.tiles, round_target: state.target });
+      } else {
+        renderPlayerView();
+      }
+      showScreen('screen-game');
+      startTimer();
+      // Host writes to DB so late joiners get correct state
       if (state.role === 'host') {
         await db.from('numero_sessions').update({
           status: 'playing',
-          round_started_at: new Date().toISOString(),
+          round_started_at: nowISO,
         }).eq('id', state.sessionId);
       }
     }

@@ -727,7 +727,7 @@ function renderTiles() {
 }
 
 function updateWorkingArea() {
-  // Working tiles pool — result tiles from completed operations
+  // ── Working tiles pool (result tiles from completed operations) ──────────
   const pool = document.getElementById('working-tiles-pool');
   const poolLabel = document.getElementById('working-tiles-label');
   if (state.workingTiles.length === 0) {
@@ -737,29 +737,43 @@ function updateWorkingArea() {
     if (poolLabel) poolLabel.style.display = 'block';
     pool.innerHTML = state.workingTiles.map((t, i) => {
       const diff = Math.abs(t.value - state.target);
-      const isExact = diff === 0;
-      const isNear = diff <= 10;
-      const cls = isExact ? 'tile exact' : isNear ? 'tile near' : 'tile result';
-      const valStr = Number.isInteger(t.value) ? t.value : t.value.toFixed(1) + '…';
-      const smallText = String(valStr).length > 4 ? ' small-text' : '';
+      const cls = diff === 0 ? 'tile exact' : diff <= 10 ? 'tile near' : 'tile result';
+      const valStr = Number.isInteger(t.value) ? String(t.value) : t.value.toFixed(1) + '…';
+      const smallText = valStr.length > 4 ? ' small-text' : '';
       const isSelected = state.selectedTileIdx && state.selectedTileIdx.id === `tile-work-${i}`;
       return `<div class="${cls}${smallText}${isSelected ? ' selected' : ''}" id="tile-work-${i}" onclick="selectTile('work', ${i}, ${t.value})">${valStr}</div>`;
     }).join('');
   }
 
-  // Current operation area — shows what's being built right now
+  // Re-apply selected class to original tile if one is selected
+  // (renderTiles doesn't know about selection state)
+  document.querySelectorAll('#tile-pool .tile').forEach(el => el.classList.remove('selected'));
+  if (state.selectedTileIdx && state.selectedTileIdx.type === 'orig') {
+    document.getElementById(state.selectedTileIdx.id)?.classList.add('selected');
+  }
+
+  // ── Current operation display ────────────────────────────────────────────
   const area = document.getElementById('working-area');
   const t1 = state.selectedTileIdx;
   const op = state.selectedOp;
 
   if (!t1 && !op) {
     area.innerHTML = '<span class="working-empty">Select two tiles and an operator to combine them</span>';
-  } else {
-    const t1Str = t1 ? `<div class="tile ${t1.type === 'work' ? 'result' : ''}" style="pointer-events:none;opacity:1">${Number.isInteger(t1.value) ? t1.value : t1.value.toFixed(1)}</div>` : '<div class="tile" style="border-style:dashed;pointer-events:none;opacity:0.4;color:var(--text-tertiary)">?</div>';
-    const opStr = op ? `<div style="font-size:24px;font-weight:500;color:var(--brand);padding:0 4px;font-family:'DM Mono',monospace">${op}</div>` : '<div style="font-size:24px;font-weight:500;color:var(--border);padding:0 4px">?</div>';
-    const t2Str = '<div class="tile" style="border-style:dashed;pointer-events:none;opacity:0.4;color:var(--text-tertiary)">?</div>';
-    area.innerHTML = `<div style="display:flex;align-items:center;gap:8px">${t1Str}${opStr}${t2Str}<div style="font-size:13px;color:var(--text-tertiary);margin-left:4px">${t1 && op ? 'now select second tile' : t1 ? 'now select an operator' : ''}</div></div>`;
+    return;
   }
+
+  const valDisplay = v => Number.isInteger(v) ? v : v.toFixed(1);
+  const t1Html = t1
+    ? `<div class="tile${t1.type === 'work' ? ' result' : ''}" style="pointer-events:none">${valDisplay(t1.value)}</div>`
+    : `<div class="tile" style="border-style:dashed;pointer-events:none;opacity:0.4;color:var(--text-tertiary)">?</div>`;
+  const opHtml = op
+    ? `<div style="font-size:26px;font-weight:500;color:var(--brand);padding:0 6px;font-family:'DM Mono',monospace">${op}</div>`
+    : `<div style="font-size:26px;font-weight:500;color:var(--border);padding:0 6px">·</div>`;
+  const t2Html = `<div class="tile" style="border-style:dashed;pointer-events:none;opacity:0.4;color:var(--text-tertiary)">?</div>`;
+  const hint = t1 && op ? 'select second tile' : t1 ? 'select an operator' : '';
+  const hintHtml = hint ? `<div style="font-size:12px;color:var(--text-tertiary);margin-left:6px">${hint}</div>` : '';
+
+  area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${t1Html}${opHtml}${t2Html}${hintHtml}</div>`;
 }
 
 // ── TILE SELECTION ─────────────────────────────────────────────────────────

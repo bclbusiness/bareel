@@ -231,15 +231,15 @@
         <div class="mode-grid">
           <div class="mode-card selected" id="mode-normal" onclick="selectMode('normal', this)">
             <div class="mode-card-name">Normal</div>
-            <div class="mode-card-range">200–999 · 30s</div>
+            <div class="mode-card-range">200–999 · 60s</div>
           </div>
           <div class="mode-card" id="mode-hard" onclick="selectMode('hard', this)">
             <div class="mode-card-name">Hard</div>
-            <div class="mode-card-range">800–1199 · 30s</div>
+            <div class="mode-card-range">800–1199 · 60s</div>
           </div>
           <div class="mode-card" id="mode-brutal" onclick="selectMode('brutal', this)">
             <div class="mode-card-name">Brutal</div>
-            <div class="mode-card-range">1000–1500 · 40s</div>
+            <div class="mode-card-range">1000–1500 · 90s</div>
           </div>
         </div>
       </div>
@@ -1019,10 +1019,16 @@ function startTimer() {
   const ringEl = document.getElementById(isObs ? 'obs-timer-ring-progress' : 'timer-ring-progress');
   const circumference = 175.9;
 
-  state.timerInterval = setInterval(async () => {
-    if (!state.roundStartedAt) return;
+  // Calculate how much time has already elapsed since round started
+  // This corrects for polling delay so all clients are in sync
+  const getRemaining = () => {
+    if (!state.roundStartedAt) return state.timeLimit;
     const elapsed = (Date.now() - new Date(state.roundStartedAt).getTime()) / 1000;
-    const remaining = Math.max(0, state.timeLimit - elapsed);
+    return Math.max(0, state.timeLimit - elapsed);
+  };
+
+  state.timerInterval = setInterval(async () => {
+    const remaining = getRemaining();
     const fraction = remaining / state.timeLimit;
 
     if (numEl) {
@@ -1036,12 +1042,13 @@ function startTimer() {
 
     if (remaining <= 0) {
       clearInterval(state.timerInterval);
-      if (!state.submitted && state.role !== 'host') {
+      if (!state.submitted && !(state.role === 'host' && !state.hostPlaying)) {
         const closest = getClosestTile();
         if (closest !== null) await doSubmit(closest);
         else await doSubmit(null);
       }
-      if (state.role === 'host') setTimeout(() => showRoundResults(), 1500);
+      // host triggers results, everyone else waits for 'results' status
+      if (state.role === 'host') setTimeout(() => triggerResults(), 1500);
     }
   }, 100);
 }
@@ -1111,18 +1118,23 @@ async function showRoundResults() {
 
   showScreen('screen-results');
 
-  if (!isFinal) {
-    // countdown to next round
-    let secs = 8;
-    const countEl = document.getElementById('next-round-countdown');
-    const bar = document.getElementById('next-round-bar');
-    const cdInterval = setInterval(async () => {
-      secs--;
-      if (countEl) countEl.textContent = secs;
-      if (bar) bar.style.width = (secs / 8 * 100) + '%';
-      if (secs <= 0) {
-        clearInterval(cdInterval);
-        if (state.role === 'host') {
+  // countdown to next round — everyone sees it, host drives the transition
+  let secs = 8;
+  const countEl = document.getElementById('next-round-countdown');
+  const bar = document.getElementById('next-round-bar');
+  if (isFinal) {
+    if (countEl) countEl.parentElement.innerHTML = '<div style="font-size:13px;color:var(--text-secondary)">Final results coming up...</div>';
+  }
+  const cdInterval = setInterval(async () => {
+    secs--;
+    if (countEl) countEl.textContent = secs;
+    if (bar) bar.style.width = (secs / 8 * 100) + '%';
+    if (secs <= 0) {
+      clearInterval(cdInterval);
+      if (state.role === 'host') {
+        if (isFinal) {
+          await db.from('numero_sessions').update({ status: 'finished' }).eq('id', state.sessionId);
+        } else {
           const nextRound = state.currentRound + 1;
           const round = await generateRound(nextRound);
           await db.from('numero_sessions').update({
@@ -1134,16 +1146,8 @@ async function showRoundResults() {
           }).eq('id', state.sessionId);
         }
       }
-    }, 1000);
-  } else {
-    // mark session finished
-    if (state.role === 'host') {
-      setTimeout(async () => {
-        await db.from('numero_sessions').update({ status: 'finished' }).eq('id', state.sessionId);
-        showFinalLeaderboard();
-      }, 3000);
     }
-  }
+  }, 1000);
 }
 
 async function showFinalLeaderboard() {
@@ -1185,6 +1189,12 @@ async function showFinalLeaderboard() {
   }
 
   showScreen('screen-final');
+}
+
+// ── TRIGGER RESULTS ───────────────────────────────────────────────────────
+async function triggerResults() {
+  // write results status so all clients show results screen
+  await db.from('numero_sessions').update({ status: 'results' }).eq('id', state.sessionId);
 }
 
 // ── PLAY AGAIN ────────────────────────────────────────────────────────────
@@ -1262,6 +1272,13 @@ function handleSessionUpdate(data) {
   if (data.status === 'playing' && (state.status === 'countdown' || state.status === 'waiting' || data.current_round !== state.currentRound)) {
     state.status = 'playing';
     loadRoundAndPlay(data);
+  }
+  if (data.status === 'results' && state.status !== 'results') {
+    state.status = 'results';
+    state.target = data.round_target || state.target;
+    state.currentRound = data.current_round || state.currentRound;
+    state.totalRounds = data.total_rounds || state.totalRounds;
+    showRoundResults();
   }
   if (data.status === 'finished' && state.status !== 'finished') {
     state.status = 'finished';

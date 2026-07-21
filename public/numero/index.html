@@ -313,10 +313,22 @@
 
     <!-- HOST OBSERVER VIEW -->
     <div id="observer-view" class="hidden">
-      <div class="target-display" style="margin-bottom:16px">
+      <div class="target-display" style="margin-bottom:12px">
         <div class="target-label">Target</div>
         <div class="target-number" id="obs-target">—</div>
-        <div class="timer-display" id="obs-timer"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px">
+        <svg width="56" height="56" viewBox="0 0 64 64" id="obs-timer-ring-svg">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--brand)" stroke-width="5"
+            stroke-dasharray="175.9" stroke-dashoffset="0"
+            stroke-linecap="round" transform="rotate(-90 32 32)"
+            id="obs-timer-ring-progress"/>
+        </svg>
+        <div style="text-align:center">
+          <div style="font-size:38px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text-primary);line-height:1" id="obs-timer-num">—</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">seconds</div>
+        </div>
       </div>
       <div style="font-size:11px;font-weight:600;letter-spacing:0.5px;color:var(--text-tertiary);text-transform:uppercase;margin-bottom:8px">Submissions</div>
       <div class="observer-list" id="observer-list"></div>
@@ -327,7 +339,20 @@
       <div class="target-display">
         <div class="target-label">Target</div>
         <div class="target-number" id="game-target">—</div>
-        <div class="timer-display" id="game-timer">30s</div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px">
+        <svg width="64" height="64" viewBox="0 0 64 64" id="timer-ring-svg">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--brand)" stroke-width="5"
+            stroke-dasharray="175.9" stroke-dashoffset="0"
+            stroke-linecap="round" transform="rotate(-90 32 32)"
+            id="timer-ring-progress"/>
+        </svg>
+        <div style="text-align:center">
+          <div style="font-size:42px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text-primary);line-height:1" id="game-timer-num">30</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">seconds</div>
+        </div>
       </div>
 
       <div class="section-label">Your numbers</div>
@@ -715,31 +740,33 @@ function updateWorkingArea() {
 // ── TILE SELECTION ─────────────────────────────────────────────────────────
 function selectTile(type, idx, value) {
   if (state.submitted) return;
-
   const tileId = `tile-${type}-${idx}`;
 
-  // If same tile clicked again — deselect
+  // Deselect if same tile tapped again
   if (state.selectedTileIdx && state.selectedTileIdx.id === tileId) {
+    document.getElementById(tileId)?.classList.remove('selected');
     state.selectedTileIdx = null;
-    document.getElementById(tileId).classList.remove('selected');
-    tryCalculate();
     return;
   }
 
-  // If we have first tile and an op, this is second tile — calculate
-  if (state.selectedTileIdx && state.selectedOp) {
+  // No first tile yet — select it
+  if (!state.selectedTileIdx) {
+    state.selectedTileIdx = { id: tileId, type, idx, value };
+    document.getElementById(tileId)?.classList.add('selected');
+    return;
+  }
+
+  // Have first tile — if also have op, perform operation with this as second tile
+  if (state.selectedOp) {
     const first = state.selectedTileIdx;
     performOperation(first, { id: tileId, type, idx, value });
     return;
   }
 
-  // Select first tile
-  if (state.selectedTileIdx) {
-    document.getElementById(state.selectedTileIdx.id)?.classList.remove('selected');
-  }
+  // Have first tile but no op yet — swap selection to this tile
+  document.getElementById(state.selectedTileIdx.id)?.classList.remove('selected');
   state.selectedTileIdx = { id: tileId, type, idx, value };
   document.getElementById(tileId)?.classList.add('selected');
-  tryCalculate();
 }
 
 function selectOp(op, el) {
@@ -923,30 +950,36 @@ async function doSubmit(value) {
 // ── TIMER ──────────────────────────────────────────────────────────────────
 function startTimer() {
   clearInterval(state.timerInterval);
-  const timerEl = document.getElementById(state.role === 'host' && !state.hostPlaying ? 'obs-timer' : 'game-timer');
+  const isObs = state.role === 'host' && !state.hostPlaying;
+  const numEl = document.getElementById(isObs ? 'obs-timer-num' : 'game-timer-num');
+  const ringEl = document.getElementById(isObs ? 'obs-timer-ring-progress' : 'timer-ring-progress');
+  const circumference = 175.9;
 
   state.timerInterval = setInterval(async () => {
     if (!state.roundStartedAt) return;
     const elapsed = (Date.now() - new Date(state.roundStartedAt).getTime()) / 1000;
     const remaining = Math.max(0, state.timeLimit - elapsed);
+    const fraction = remaining / state.timeLimit;
 
-    if (timerEl) {
-      timerEl.textContent = `${Math.ceil(remaining)}s remaining`;
-      timerEl.classList.toggle('urgent', remaining <= 10);
+    if (numEl) {
+      numEl.textContent = Math.ceil(remaining);
+      numEl.style.color = remaining <= 10 ? '#C0392B' : 'var(--text-primary)';
+    }
+    if (ringEl) {
+      ringEl.style.stroke = remaining <= 10 ? '#C0392B' : 'var(--brand)';
+      ringEl.setAttribute('stroke-dashoffset', circumference * (1 - fraction));
     }
 
     if (remaining <= 0) {
       clearInterval(state.timerInterval);
       if (!state.submitted && state.role !== 'host') {
-        // auto-submit closest tile
         const closest = getClosestTile();
         if (closest !== null) await doSubmit(closest);
         else await doSubmit(null);
       }
-      // host triggers results after short delay
       if (state.role === 'host') setTimeout(() => showRoundResults(), 1500);
     }
-  }, 200);
+  }, 100);
 }
 
 // ── ROUND RESULTS ──────────────────────────────────────────────────────────
@@ -1060,10 +1093,56 @@ async function showFinalLeaderboard() {
     </div>`).join('');
 
   if (state.role === 'host') {
-    document.getElementById('play-again-wrap').innerHTML = '<button class="btn btn-ghost" onclick="window.location.reload()">New game</button>';
+    document.getElementById('play-again-wrap').innerHTML = `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-top:4px">
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:12px">Play again with the same players?</div>
+        <div style="margin-bottom:14px">
+          <label class="field-label">Number of rounds</label>
+          <div class="round-selector" id="play-again-rounds">
+            <button class="round-btn" onclick="selectPlayAgainRounds(1,this)">1</button>
+            <button class="round-btn" onclick="selectPlayAgainRounds(2,this)">2</button>
+            <button class="round-btn selected" onclick="selectPlayAgainRounds(3,this)">3</button>
+            <button class="round-btn" onclick="selectPlayAgainRounds(4,this)">4</button>
+            <button class="round-btn" onclick="selectPlayAgainRounds(5,this)">5</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary btn-full" onclick="playAgain()">Play again</button>
+          <button class="btn btn-ghost" onclick="window.location.reload()">New game</button>
+        </div>
+      </div>`;
+    playAgainRounds = 3;
   }
 
   showScreen('screen-final');
+}
+
+// ── PLAY AGAIN ────────────────────────────────────────────────────────────
+let playAgainRounds = 3;
+
+function selectPlayAgainRounds(n, el) {
+  playAgainRounds = n;
+  document.querySelectorAll('#play-again-rounds .round-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function playAgain() {
+  // reset scores
+  const { data: parts } = await db.from('numero_participants').select('*').eq('session_id', state.sessionId);
+  for (const p of parts || []) {
+    await db.from('numero_participants').update({ total_score: 0 }).eq('id', p.id);
+  }
+  // reset session
+  const round = await generateRound(1);
+  state.totalRounds = playAgainRounds;
+  state.currentRound = 0;
+  state.status = 'waiting';
+  await db.from('numero_sessions').update({
+    status: 'playing',
+    current_round: 1,
+    total_rounds: playAgainRounds,
+    ...round,
+  }).eq('id', state.sessionId);
 }
 
 // ── REALTIME ───────────────────────────────────────────────────────────────

@@ -341,7 +341,7 @@
         <div class="target-number" id="game-target">—</div>
       </div>
 
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px">
         <svg width="64" height="64" viewBox="0 0 64 64" id="timer-ring-svg">
           <circle cx="32" cy="32" r="28" fill="none" stroke="var(--border)" stroke-width="5"/>
           <circle cx="32" cy="32" r="28" fill="none" stroke="var(--brand)" stroke-width="5"
@@ -358,6 +358,9 @@
       <div class="section-label">Your numbers</div>
       <div class="tile-pool" id="tile-pool"></div>
 
+      <div class="section-label" id="working-tiles-label" style="display:none">Working tiles</div>
+      <div class="tile-pool" id="working-tiles-pool" style="min-height:0;margin-bottom:10px"></div>
+
       <div class="ops-row">
         <button class="op-btn" onclick="selectOp('+', this)">+</button>
         <button class="op-btn" onclick="selectOp('−', this)">−</button>
@@ -365,14 +368,12 @@
         <button class="op-btn" onclick="selectOp('÷', this)">÷</button>
       </div>
 
-      <div class="section-label">Working area</div>
+      <div class="section-label">Current operation</div>
       <div class="working-area" id="working-area">
-        <span class="working-empty">Combine tiles above to build your answer</span>
+        <span class="working-empty">Select two tiles and an operator to combine them</span>
       </div>
 
-      <div class="expr-display" id="expr-display"></div>
-
-      <div class="action-row">
+      <div class="action-row" style="margin-top:14px">
         <button class="btn btn-ghost" onclick="undoMove()" id="btn-undo" disabled>
           <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Undo
         </button>
@@ -440,20 +441,25 @@
       <div style="font-size:14px;font-weight:600;color:var(--text-primary)">Bareel Numero</div>
     </div>
     <div style="font-size:16px;font-weight:500;color:var(--text-primary);margin-bottom:4px">How to play</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.5">Use your number tiles to get as close to the target as possible!</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.5">A live multiplayer maths game — use number tiles to get as close to the target as possible.</div>
     <div class="onboarding-step">
-      <div class="onboarding-icon"><i class="ti ti-target" aria-hidden="true" style="font-size:17px;color:var(--brand)"></i></div>
-      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Hit the 3 or 4 digit target number</div>
+      <div class="onboarding-icon"><i class="ti ti-users" aria-hidden="true" style="font-size:17px;color:var(--brand)"></i></div>
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Gather your group, start a session</div>
     </div>
     <div style="display:flex;gap:0;margin-bottom:4px"><div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div></div>
     <div class="onboarding-step">
-      <div class="onboarding-icon"><i class="ti ti-calculator" aria-hidden="true" style="font-size:17px;color:var(--brand)"></i></div>
-      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Tap two tiles and an operator to combine them</div>
+      <div class="onboarding-icon"><i class="ti ti-hash" aria-hidden="true" style="font-size:17px;color:var(--brand)"></i></div>
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">The same working numbers and target are generated for everyone</div>
+    </div>
+    <div style="display:flex;gap:0;margin-bottom:4px"><div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div></div>
+    <div class="onboarding-step">
+      <div class="onboarding-icon"><i class="ti ti-target" aria-hidden="true" style="font-size:17px;color:var(--brand)"></i></div>
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Hit the target number</div>
     </div>
     <div style="display:flex;gap:0;margin-bottom:4px"><div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div></div>
     <div class="onboarding-step">
       <div class="onboarding-icon"><i class="ti ti-trophy" aria-hidden="true" style="font-size:17px;color:var(--brand)"></i></div>
-      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Exact match = 100pts · Within 10 = bonus points</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Winner gets points — exact match = 100, within 10 of target scores less</div>
     </div>
     <hr style="border:none;border-top:1px solid var(--border);margin:18px 0" />
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -721,20 +727,39 @@ function renderTiles() {
 }
 
 function updateWorkingArea() {
-  const area = document.getElementById('working-area');
+  // Working tiles pool — result tiles from completed operations
+  const pool = document.getElementById('working-tiles-pool');
+  const poolLabel = document.getElementById('working-tiles-label');
   if (state.workingTiles.length === 0) {
-    area.innerHTML = '<span class="working-empty">Combine tiles above to build your answer</span>';
-    return;
+    pool.innerHTML = '';
+    if (poolLabel) poolLabel.style.display = 'none';
+  } else {
+    if (poolLabel) poolLabel.style.display = 'block';
+    pool.innerHTML = state.workingTiles.map((t, i) => {
+      const diff = Math.abs(t.value - state.target);
+      const isExact = diff === 0;
+      const isNear = diff <= 10;
+      const cls = isExact ? 'tile exact' : isNear ? 'tile near' : 'tile result';
+      const valStr = Number.isInteger(t.value) ? t.value : t.value.toFixed(1) + '…';
+      const smallText = String(valStr).length > 4 ? ' small-text' : '';
+      const isSelected = state.selectedTileIdx && state.selectedTileIdx.id === `tile-work-${i}`;
+      return `<div class="${cls}${smallText}${isSelected ? ' selected' : ''}" id="tile-work-${i}" onclick="selectTile('work', ${i}, ${t.value})">${valStr}</div>`;
+    }).join('');
   }
-  area.innerHTML = state.workingTiles.map((t, i) => {
-    const diff = Math.abs(t.value - state.target);
-    const isNear = diff <= 10;
-    const isExact = diff === 0;
-    const cls = isExact ? 'tile exact' : isNear ? 'tile near' : 'tile result';
-    const valStr = Number.isInteger(t.value) ? t.value : t.value.toFixed(1) + '…';
-    const smallText = String(valStr).length > 4 ? ' small-text' : '';
-    return `<div class="${cls}${smallText}" id="tile-work-${i}" onclick="selectTile('work', ${i}, ${t.value})">${valStr}</div>`;
-  }).join('');
+
+  // Current operation area — shows what's being built right now
+  const area = document.getElementById('working-area');
+  const t1 = state.selectedTileIdx;
+  const op = state.selectedOp;
+
+  if (!t1 && !op) {
+    area.innerHTML = '<span class="working-empty">Select two tiles and an operator to combine them</span>';
+  } else {
+    const t1Str = t1 ? `<div class="tile ${t1.type === 'work' ? 'result' : ''}" style="pointer-events:none;opacity:1">${Number.isInteger(t1.value) ? t1.value : t1.value.toFixed(1)}</div>` : '<div class="tile" style="border-style:dashed;pointer-events:none;opacity:0.4;color:var(--text-tertiary)">?</div>';
+    const opStr = op ? `<div style="font-size:24px;font-weight:500;color:var(--brand);padding:0 4px;font-family:'DM Mono',monospace">${op}</div>` : '<div style="font-size:24px;font-weight:500;color:var(--border);padding:0 4px">?</div>';
+    const t2Str = '<div class="tile" style="border-style:dashed;pointer-events:none;opacity:0.4;color:var(--text-tertiary)">?</div>';
+    area.innerHTML = `<div style="display:flex;align-items:center;gap:8px">${t1Str}${opStr}${t2Str}<div style="font-size:13px;color:var(--text-tertiary);margin-left:4px">${t1 && op ? 'now select second tile' : t1 ? 'now select an operator' : ''}</div></div>`;
+  }
 }
 
 // ── TILE SELECTION ─────────────────────────────────────────────────────────
@@ -746,6 +771,7 @@ function selectTile(type, idx, value) {
   if (state.selectedTileIdx && state.selectedTileIdx.id === tileId) {
     document.getElementById(tileId)?.classList.remove('selected');
     state.selectedTileIdx = null;
+    updateWorkingArea();
     return;
   }
 
@@ -753,6 +779,7 @@ function selectTile(type, idx, value) {
   if (!state.selectedTileIdx) {
     state.selectedTileIdx = { id: tileId, type, idx, value };
     document.getElementById(tileId)?.classList.add('selected');
+    updateWorkingArea();
     return;
   }
 
@@ -767,13 +794,14 @@ function selectTile(type, idx, value) {
   document.getElementById(state.selectedTileIdx.id)?.classList.remove('selected');
   state.selectedTileIdx = { id: tileId, type, idx, value };
   document.getElementById(tileId)?.classList.add('selected');
+  updateWorkingArea();
 }
 
 function selectOp(op, el) {
   state.selectedOp = op;
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
-  tryCalculate();
+  updateWorkingArea();
 }
 
 function clearOps() {
@@ -781,9 +809,7 @@ function clearOps() {
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('selected'));
 }
 
-function tryCalculate() {
-  updateExprDisplay();
-}
+
 
 function performOperation(first, second) {
   const op = state.selectedOp;
@@ -836,14 +862,7 @@ function resetSelection() {
   updateExprDisplay();
 }
 
-function updateExprDisplay() {
-  const el = document.getElementById('expr-display');
-  if (state.workingTiles.length > 0) {
-    el.textContent = state.workingTiles.map(t => t.expr).join(' → ');
-  } else {
-    el.textContent = '';
-  }
-}
+
 
 function updateSubmitButton() {
   const btn = document.getElementById('btn-submit');

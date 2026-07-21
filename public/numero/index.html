@@ -124,9 +124,9 @@
     .tile:hover { border-color: var(--brand-mid); }
     .tile.selected { background: var(--brand-light); border-color: var(--brand); color: var(--brand-dark); transform: scale(1.05); }
     .tile.used { opacity: 0.2; pointer-events: none; }
-    .tile.result { background: var(--brand); color: white; border-color: var(--brand); }
-    .tile.result:hover { background: var(--brand-dark); }
-    .tile.result.selected { background: var(--brand-dark); border-color: var(--brand-dark); }
+    .tile.result { background: var(--bg-card); color: var(--brand); border-color: var(--brand-mid); border-width: 1.5px; }
+    .tile.result:hover { border-color: var(--brand); background: var(--brand-light); }
+    .tile.result.selected { background: var(--brand-light); border-color: var(--brand); color: var(--brand-dark); }
     .tile.near { background: var(--amber-light); border-color: var(--amber); color: var(--amber-dark); }
     .tile.near.selected { background: #f5d9a0; border-color: var(--amber); }
     .tile.exact { background: var(--green-light); border-color: var(--green); color: #085041; }
@@ -1017,8 +1017,17 @@ async function doSubmit(value) {
   });
 
   const exact = value === state.target;
-  // Show a submitted banner overlay over the game screen instead of replacing it
   showSubmittedBanner(exact, value);
+
+  // Host checks if all players have now submitted — end round early if so
+  if (state.role === 'host') {
+    const { data: answers } = await db.from('numero_answers').select('participant_id').eq('session_id', state.sessionId).eq('round', state.currentRound);
+    const { data: parts } = await db.from('numero_participants').select('participant_id').eq('session_id', state.sessionId);
+    if (answers && parts && answers.length >= parts.length) {
+      clearInterval(state.timerInterval);
+      setTimeout(() => triggerResults(), 800);
+    }
+  }
 }
 
 // ── SUBMITTED BANNER ──────────────────────────────────────────────────────
@@ -1246,11 +1255,12 @@ function selectPlayAgainRounds(n, el) {
 }
 
 async function playAgain() {
-  // reset scores
+  // reset scores and clear old answers
   const { data: parts } = await db.from('numero_participants').select('*').eq('session_id', state.sessionId);
   for (const p of parts || []) {
     await db.from('numero_participants').update({ total_score: 0 }).eq('id', p.id);
   }
+  await db.from('numero_answers').delete().eq('session_id', state.sessionId);
   // reset session
   const round = await generateRound(1);
   state.totalRounds = playAgainRounds;
@@ -1295,7 +1305,11 @@ function subscribeToSession(sessionId) {
       state.roundSubmissions = {};
       (ans || []).forEach(a => { state.roundSubmissions[a.participant_id] = true; });
       if (!state.hostPlaying) refreshObserverList();
-      // (results triggered by timer expiry only)
+      // end round early if all players submitted
+      if (ans && allParts && ans.length >= allParts.length && data.status === 'playing' && state.status === 'playing') {
+        clearInterval(state.timerInterval);
+        setTimeout(() => triggerResults(), 800);
+      }
     }
   }, 2000);
 }

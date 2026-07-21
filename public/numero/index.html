@@ -374,11 +374,8 @@
       </div>
 
       <div class="action-row" style="margin-top:14px">
-        <button class="btn btn-ghost" onclick="undoMove()" id="btn-undo" disabled>
+        <button class="btn btn-ghost btn-full" onclick="undoMove()" id="btn-undo" disabled>
           <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Undo
-        </button>
-        <button class="btn btn-primary" onclick="submitAnswer()" id="btn-submit" disabled style="flex:2">
-          Submit
         </button>
       </div>
     </div>
@@ -751,8 +748,6 @@ function renderPlayerView() {
   renderTiles();
   clearOps();
   updateWorkingArea();
-  document.getElementById('btn-submit').disabled = true;
-  document.getElementById('btn-submit').textContent = 'Submit';
   document.getElementById('btn-undo').disabled = true;
 }
 
@@ -916,21 +911,10 @@ function resetSelection() {
 
 
 function updateSubmitButton() {
-  const btn = document.getElementById('btn-submit');
+  // Submit button removed — auto-submit only
   if (state.submitted) {
-    btn.disabled = true;
-    btn.textContent = 'Submitted';
-    document.getElementById('btn-undo').disabled = true;
-    return;
-  }
-  // Find best tile within ±10
-  const best = getBestTile();
-  if (best !== null) {
-    btn.disabled = false;
-    btn.textContent = `Submit ${Number.isInteger(best) ? best : best.toFixed(1)}`;
-  } else {
-    btn.disabled = true;
-    btn.textContent = 'Submit';
+    const undoBtn = document.getElementById('btn-undo');
+    if (undoBtn) undoBtn.disabled = true;
   }
 }
 
@@ -979,7 +963,6 @@ function undoMove() {
   // if was submitted, resume timer
   if (state.submitted) {
     state.submitted = false;
-    document.getElementById('btn-submit').disabled = false;
     startTimer();
   }
 
@@ -990,12 +973,6 @@ function undoMove() {
 }
 
 // ── SUBMIT ─────────────────────────────────────────────────────────────────
-async function submitAnswer() {
-  const best = getBestTile();
-  if (best === null) return;
-  await doSubmit(best);
-}
-
 async function autoSubmit(value) {
   await doSubmit(value);
 }

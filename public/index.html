@@ -183,8 +183,7 @@
   <span class="brand-domain">· Host a session!</span>
   <nav class="topbar-nav">
     <button class="nav-tab active" onclick="switchTab('work', this)">Work</button>
-    <button class="nav-tab" onclick="switchTab('home', this)">Home</button>
-    <button class="nav-tab" onclick="switchTab('fun', this)">Fun</button>
+    <button class="nav-tab" onclick="switchTab('play', this)">Play</button>
   </nav>
 </header>
 
@@ -262,95 +261,9 @@
   </div>
 
 
-  <!-- HOME TAB -->
-  <div class="tab-content" id="tab-home">
-    <div class="section-label">Home apps</div>
-    <div class="app-grid">
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-checklist" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Chore List</div>
-        <div class="app-desc">Shared household chore lists — assign, track and tick off together.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-shopping-cart" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Shopping List</div>
-        <div class="app-desc">Collaborative shopping lists — everyone adds, nobody doubles up.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Meal Planner</div>
-        <div class="app-desc">Plan the week's meals together — no more "what's for dinner?"</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-coin" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Budget Tracker</div>
-        <div class="app-desc">Track shared household spending — simple, transparent, fair.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-message-question" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Family Q&amp;A</div>
-        <div class="app-desc">Anonymous questions for families — a safe space to ask anything.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-writing" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Home Whiteboard</div>
-        <div class="app-desc">A shared canvas for notes, plans and ideas around the home.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- FUN TAB -->
-  <div class="tab-content" id="tab-fun">
-    <div class="section-label">Fun apps</div>
+  <!-- PLAY TAB -->
+  <div class="tab-content" id="tab-play">
+    <div class="section-label">Play apps</div>
     <div class="app-grid">
 
       <div class="app-card soon">
@@ -445,7 +358,7 @@
     window.location.replace('/join/');
   }
 
-  const TAB_ORDER = ['work', 'home', 'fun'];
+  const TAB_ORDER = ['work', 'play'];
   let currentTab = 'work';
 
   const HERO = {
@@ -454,13 +367,8 @@
       title: 'Free to use, lightweight productivity tools for work.',
       sub: 'Every Bareel tool works the same way — create a session and your team can join instantly. Free and simple to use. No accounts needed for hosts or participants.',
     },
-    home: {
-      eyebrow: 'Bareel at home',
-      title: 'Simple tools to keep your household organised and in sync.',
-      sub: 'From chore lists to meal planning — every Bareel home tool works the same way. Create a session, share the code, and everyone is on the same page instantly.',
-    },
-    fun: {
-      eyebrow: 'Bareel for fun',
+    play: {
+      eyebrow: 'Bareel Play',
       title: 'Live multiplayer games for friends, families and teams.',
       sub: 'No downloads, no sign-ups, no faff. Create a game, share the code, and everyone can join from their own device — the fun starts in seconds.',
     },

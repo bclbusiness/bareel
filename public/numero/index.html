@@ -444,7 +444,7 @@
     <div style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.5">A live multiplayer maths game — use number tiles to get as close to the target as possible.</div>
     <div class="onboarding-step">
       <div class="onboarding-icon"><i class="ti ti-users" aria-hidden="true" style="font-size:17px;color:var(--brand)"></i></div>
-      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Gather your group, start a session</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Gather your group, start a game</div>
     </div>
     <div style="display:flex;gap:0;margin-bottom:4px"><div class="onboarding-connector"><i class="ti ti-arrow-down" aria-hidden="true"></i></div></div>
     <div class="onboarding-step">
@@ -873,7 +873,7 @@ function resetSelection() {
     state.selectedTileIdx = null;
   }
   clearOps();
-  updateExprDisplay();
+  updateWorkingArea();
 }
 
 

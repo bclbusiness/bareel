@@ -491,15 +491,18 @@ function renderCard(containerId, card, marked, interactive) {
     </div>`;
   }).join('');
 
-  // Attach click listeners via JS rather than inline onclick
+  // Use event delegation on the container — one listener, always works
+  el.onclick = null;
   if (interactive) {
-    el.querySelectorAll('.diamond-gem:not(.free-square)').forEach(gem => {
-      gem.addEventListener('click', () => {
-        const colIdx = parseInt(gem.dataset.col, 10);
-        const row = parseInt(gem.dataset.row, 10);
-        markCell(colIdx, row);
-      });
-    });
+    el.onclick = (e) => {
+      const gem = e.target.closest('.diamond-gem');
+      console.log('Grid clicked, gem:', gem, 'target:', e.target);
+      if (!gem || gem.classList.contains('free-square')) return;
+      const colIdx = parseInt(gem.dataset.col, 10);
+      const row = parseInt(gem.dataset.row, 10);
+      console.log('Marking cell:', colIdx, row);
+      markCell(colIdx, row);
+    };
   }
 }
 

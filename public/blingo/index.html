@@ -450,7 +450,7 @@ function generateCard() {
       const n = Math.floor(Math.random() * (max - min + 1)) + min;
       if (!nums.includes(n)) nums.push(n);
     }
-    card.push(nums);
+    card.push(nums.map(n => parseInt(n, 10)));
   });
   // Free centre square
   card[2][2] = 0;
@@ -504,7 +504,9 @@ function diamondSVG(color, marked) {
 function markCell(colIdx, row) {
   const num = state.card[colIdx][row];
   if (num === 0) return; // free square — always marked
-  if (!state.calledNumbers.includes(num)) return; // only mark if called
+  // Compare as integers — Supabase JSON may return numbers as strings
+  const called = state.calledNumbers.map(n => parseInt(n, 10));
+  if (!called.includes(parseInt(num, 10))) return; // only mark if called
 
   const idx = row * 5 + colIdx;
   state.marked[idx] = !state.marked[idx];
@@ -634,8 +636,11 @@ async function joinSession() {
 
   state.role = 'participant'; state.sessionId = session.id; state.sessionCode = code;
   state.sessionName = session.name; state.participantId = pid;
-  state.participantName = name; state.card = card; state.marked = marked;
-  state.calledNumbers = session.called_numbers || [];
+  state.participantName = name;
+  // ensure card values are integers
+  state.card = card.map(col => col.map(n => parseInt(n, 10)));
+  state.marked = marked;
+  state.calledNumbers = (session.called_numbers || []).map(n => parseInt(n, 10));
   state.currentCall = session.current_call;
 
   if (session.status === 'waiting') {
@@ -675,7 +680,7 @@ function getCol(n) {
 
 // ── HOST CALLER SCREEN ─────────────────────────────────────────────────────
 function startHostCaller(session) {
-  state.calledNumbers = session.called_numbers || [];
+  state.calledNumbers = (session.called_numbers || []).map(n => parseInt(n, 10));
   state.currentCall = session.current_call;
   state.callPool = session.call_pool || [];
   state.callIndex = session.call_index || 0;
@@ -757,7 +762,7 @@ async function callNext() {
 
 // ── PARTICIPANT GAME ───────────────────────────────────────────────────────
 function startParticipantGame(session) {
-  state.calledNumbers = session.called_numbers || [];
+  state.calledNumbers = (session.called_numbers || []).map(n => parseInt(n, 10));
   state.currentCall = session.current_call;
   state.callStartedAt = session.call_started_at;
 
@@ -898,7 +903,7 @@ function subscribeToSession(sessionId) {
 function handleSessionUpdate(data) {
   if (data.status === 'playing' && state.status !== 'playing') {
     state.status = 'playing';
-    state.calledNumbers = data.called_numbers || [];
+    state.calledNumbers = (data.called_numbers || []).map(n => parseInt(n, 10));
     state.currentCall = data.current_call;
     state.callStartedAt = data.call_started_at;
     state.callPool = data.call_pool || [];
@@ -911,7 +916,7 @@ function handleSessionUpdate(data) {
   if (data.status === 'playing' && state.status === 'playing') {
     // New number called
     const prevCall = state.currentCall;
-    state.calledNumbers = data.called_numbers || [];
+    state.calledNumbers = (data.called_numbers || []).map(n => parseInt(n, 10));
     state.currentCall = data.current_call;
     state.callStartedAt = data.call_started_at;
     state.callIndex = data.call_index || 0;

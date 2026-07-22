@@ -428,7 +428,7 @@ try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.w
 const COLS = ['B','I','N','G','O'];
 const COL_RANGES = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
 const COL_COLORS = { B:'var(--col-b)', I:'var(--col-i)', N:'var(--col-n)', G:'var(--col-g)', O:'var(--col-o)' };
-const RHYMES = {1: "Kelly"s eye", 2: "One little duck", 3: "Cup of tea", 4: "Knock at the door", 5: "Man alive", 6: "Tom Mix", 7: "Lucky seven", 8: "One fat lady", 9: "Doctor"s orders", 10: "Prime Minister"s den", 11: "Legs eleven", 12: "One dozen", 13: "Unlucky for some", 14: "Valentine"s day", 15: "Young and keen", 16: "Sweet sixteen", 17: "Dancing queen", 18: "Coming of age", 19: "Goodbye teens", 20: "One score", 21: "Key of the door", 22: "Two little ducks", 23: "Thee and me", 24: "Two dozen", 25: "Duck and dive", 26: "Pick and mix", 27: "Gateway to heaven", 28: "Overweight", 29: "Rise and shine", 30: "Dirty Gertie", 31: "Get up and run", 32: "Buckle my shoe", 33: "Dirty knees", 34: "Ask for more", 35: "Jump and jive", 36: "Three dozen", 37: "More than eleven", 38: "Christmas cake", 39: "Steps", 40: "Life begins", 41: "Time for fun", 42: "Winnie the Pooh", 43: "Down on your knees", 44: "Droopy drawers", 45: "Halfway there", 46: "Up to tricks", 47: "Four and seven", 48: "Four dozen", 49: "PC", 50: "Half a century", 51: "Tweak of the thumb", 52: "Danny La Rue", 53: "Stuck in a tree", 54: "Clean the floor", 55: "Snakes alive", 56: "Was she worth it", 57: "Heinz varieties", 58: "Make them wait", 59: "Brighton line", 60: "Five dozen", 61: "Baker"s bun", 62: "Tickety-boo", 63: "Tickle me", 64: "Red raw", 65: "Old age pension", 66: "Clickety click", 67: "Made in heaven", 68: "Saving Grace", 69: "Anyway up", 70: "Three score and ten", 71: "Bang on the drum", 72: "Six dozen", 73: "Queen bee", 74: "Hit the floor", 75: "Strive and strive"};
+const RHYMES = {1: 'Kelly\'s eye', 2: 'One little duck', 3: 'Cup of tea', 4: 'Knock at the door', 5: 'Man alive', 6: 'Tom Mix', 7: 'Lucky seven', 8: 'One fat lady', 9: 'Doctor\'s orders', 10: 'PM\'s den', 11: 'Legs eleven', 12: 'One dozen', 13: 'Unlucky for some', 14: 'Valentine\'s day', 15: 'Young and keen', 16: 'Sweet sixteen', 17: 'Dancing queen', 18: 'Coming of age', 19: 'Goodbye teens', 20: 'One score', 21: 'Key of the door', 22: 'Two little ducks', 23: 'Thee and me', 24: 'Two dozen', 25: 'Duck and dive', 26: 'Pick and mix', 27: 'Gateway to heaven', 28: 'Overweight', 29: 'Rise and shine', 30: 'Dirty Gertie', 31: 'Get up and run', 32: 'Buckle my shoe', 33: 'Dirty knees', 34: 'Ask for more', 35: 'Jump and jive', 36: 'Three dozen', 37: 'More than eleven', 38: 'Christmas cake', 39: 'Steps', 40: 'Life begins', 41: 'Time for fun', 42: 'Winnie the Pooh', 43: 'Down on your knees', 44: 'Droopy drawers', 45: 'Halfway there', 46: 'Up to tricks', 47: 'Four and seven', 48: 'Four dozen', 49: 'PC', 50: 'Half a century', 51: 'Tweak of the thumb', 52: 'Danny La Rue', 53: 'Stuck in a tree', 54: 'Clean the floor', 55: 'Snakes alive', 56: 'Was she worth it', 57: 'Heinz varieties', 58: 'Make them wait', 59: 'Brighton line', 60: 'Five dozen', 61: 'Baker\'s bun', 62: 'Tickety-boo', 63: 'Tickle me', 64: 'Red raw', 65: 'Old age pension', 66: 'Clickety click', 67: 'Made in heaven', 68: 'Saving Grace', 69: 'Anyway up', 70: 'Three score and ten', 71: 'Bang on the drum', 72: 'Six dozen', 73: 'Queen bee', 74: 'Hit the floor', 75: 'Strive and strive'};
 const COL_LIGHTS = { B:'var(--col-b-light)', I:'var(--col-i-light)', N:'var(--col-n-light)', G:'var(--col-g-light)', O:'var(--col-o-light)' };
 const CALL_INTERVAL = 15;
 
@@ -509,12 +509,10 @@ function renderCard(containerId, card, marked, interactive) {
   if (interactive) {
     el.onclick = (e) => {
       const gem = e.target.closest('.diamond-gem');
-      console.log('Grid clicked, gem:', gem, 'target:', e.target);
-      if (!gem || gem.classList.contains('free-square')) return;
+          if (!gem || gem.classList.contains('free-square')) return;
       const colIdx = parseInt(gem.dataset.col, 10);
       const row = parseInt(gem.dataset.row, 10);
-      console.log('Marking cell:', colIdx, row);
-      markCell(colIdx, row);
+          markCell(colIdx, row);
     };
   }
 }
@@ -532,7 +530,6 @@ function markCell(colIdx, row) {
   const num = parseInt(state.card[colIdx][row], 10);
   if (num === 0) return; // free square
   const called = state.calledNumbers.map(n => parseInt(n, 10));
-  console.log('markCell called:', colIdx, row, 'num:', num, 'called:', called, 'includes:', called.includes(num));
   if (!called.includes(num)) return;
 
   const idx = row * 5 + colIdx;
@@ -1050,10 +1047,6 @@ function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 // ── INIT ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
-  // Debug: log all clicks
-  document.addEventListener('click', (e) => {
-    console.log('CLICK detected on:', e.target.tagName, e.target.id, e.target.className);
-  });
   const urlParams = new URLSearchParams(window.location.search);
   const prefilledCode = urlParams.get('code');
   const isJoin = window.location.search.includes('join') || window.location.pathname.includes('join');

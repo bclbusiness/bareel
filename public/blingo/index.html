@@ -322,6 +322,10 @@
         </div>
         <div class="bingo-grid" id="host-card-grid"></div>
       </div>
+      <div style="margin-top:14px;text-align:center">
+        <button class="btn-blingo" id="btn-blingo-host" onclick="claimBlingo()" disabled>💎 Blingo!</button>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:8px" id="blingo-hint-host">Complete a line to claim Blingo!</div>
+      </div>
     </div>
 
   </div>
@@ -555,10 +559,17 @@ function checkForBlingo() {
     const colIdx = i % 5, row = Math.floor(i / 5);
     return state.card[colIdx][row] === 0 || m[i];
   }));
+  const hintText = hasLine ? 'You have a line — claim your Blingo!' : 'Complete a line to claim Blingo!';
+  // Update participant button
   const btn = document.getElementById('btn-blingo');
   const hint = document.getElementById('blingo-hint');
   if (btn) btn.disabled = !hasLine;
-  if (hint) hint.textContent = hasLine ? 'You have a line — claim your Blingo!' : 'Complete a line to claim Blingo!';
+  if (hint) hint.textContent = hintText;
+  // Update host button
+  const btnHost = document.getElementById('btn-blingo-host');
+  const hintHost = document.getElementById('blingo-hint-host');
+  if (btnHost) btnHost.disabled = !hasLine;
+  if (hintHost) hintHost.textContent = hintText;
 }
 
 // ── CREATE SESSION ─────────────────────────────────────────────────────────

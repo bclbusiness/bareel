@@ -182,6 +182,7 @@
 
     .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 8px; }
     .hidden { display: none !important; }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.06);opacity:0.85} }
   </style>
 </head>
 <body>
@@ -404,7 +405,6 @@
   </div>
 </div>
 
-@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
 
 <script>
 const SUPABASE_URL = window.BAREEL_CONFIG.supabaseUrl;
@@ -502,10 +502,9 @@ function diamondSVG(color, marked) {
 }
 
 function markCell(colIdx, row) {
-  if (state.submitted) return;
   const num = state.card[colIdx][row];
-  if (num === 0) return; // free square
-  if (!state.calledNumbers.includes(num)) return; // not called yet
+  if (num === 0) return; // free square — always marked
+  if (!state.calledNumbers.includes(num)) return; // only mark if called
 
   const idx = row * 5 + colIdx;
   state.marked[idx] = !state.marked[idx];
@@ -762,9 +761,6 @@ function startParticipantGame(session) {
   state.currentCall = session.current_call;
   state.callStartedAt = session.call_started_at;
 
-  // Mark any already-called numbers on card
-  autoMarkCalled();
-
   renderCard('game-card-grid', state.card, state.marked, true);
   updateGameDisplay(session);
   checkForBlingo();
@@ -772,15 +768,7 @@ function startParticipantGame(session) {
   startParticipantTimer();
 }
 
-function autoMarkCalled() {
-  for (let col = 0; col < 5; col++) {
-    for (let row = 0; row < 5; row++) {
-      const num = state.card[col][row];
-      if (num === 0) { state.marked[row * 5 + col] = true; continue; }
-      if (state.calledNumbers.includes(num)) state.marked[row * 5 + col] = true;
-    }
-  }
-}
+
 
 function updateGameDisplay(session) {
   const n = session.current_call || state.currentCall;
@@ -935,7 +923,6 @@ function handleSessionUpdate(data) {
       startCallTimer();
     } else {
       // Auto-mark newly called number if on card
-      if (state.currentCall) autoMarkSingle(state.currentCall);
       updateGameDisplay(data);
       startParticipantTimer();
     }
@@ -969,26 +956,7 @@ function handleSessionUpdate(data) {
   }
 }
 
-function autoMarkSingle(num) {
-  for (let col = 0; col < 5; col++) {
-    for (let row = 0; row < 5; row++) {
-      if (state.card[col][row] === num) {
-        state.marked[row * 5 + col] = true;
-        // Update tile visually
-        const gem = document.getElementById(`gem-game-card-grid-${col}-${row}`);
-        if (gem) {
-          const color = COL_COLORS[COLS[col]];
-          const lightColor = COL_LIGHTS[COLS[col]];
-          gem.classList.add('marked');
-          gem.style.background = lightColor;
-          gem.style.borderColor = color;
-          gem.innerHTML = diamondSVG(color, true) + `<span class="gem-num" style="color:${color}">${num}</span>`;
-        }
-      }
-    }
-  }
-  checkForBlingo();
-}
+
 
 // ── ONBOARDING ─────────────────────────────────────────────────────────────
 function initOnboarding() {

@@ -107,7 +107,7 @@
       width: 100%; aspect-ratio: 1;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       position: relative; cursor: pointer; transition: all 0.15s;
-      border-radius: 4px;
+      border-radius: 4px; user-select: none; -webkit-tap-highlight-color: transparent;
     }
     .diamond-gem svg { width: 100%; height: auto; display: block; }
     .diamond-gem .gem-num {
@@ -494,7 +494,7 @@ function renderCard(containerId, card, marked, interactive) {
 
 function diamondSVG(color, marked) {
   const opacity = marked ? 0.25 : 0.7;
-  return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none">
     <polygon points="20,4 36,16 20,36 4,16" fill="${color}" opacity="${opacity}"/>
     <polygon points="20,4 36,16 20,20" fill="white" opacity="0.15"/>
     <polygon points="20,4 36,16 20,36 4,16" fill="none" stroke="${color}" stroke-width="1.5" opacity="0.6"/>
@@ -502,11 +502,11 @@ function diamondSVG(color, marked) {
 }
 
 function markCell(colIdx, row) {
-  const num = state.card[colIdx][row];
-  if (num === 0) return; // free square — always marked
-  // Compare as integers — Supabase JSON may return numbers as strings
+  const num = parseInt(state.card[colIdx][row], 10);
+  if (num === 0) return; // free square
   const called = state.calledNumbers.map(n => parseInt(n, 10));
-  if (!called.includes(parseInt(num, 10))) return; // only mark if called
+  console.log('markCell called:', colIdx, row, 'num:', num, 'calledNumbers:', called, 'includes:', called.includes(num));
+  if (!called.includes(num)) return;
 
   const idx = row * 5 + colIdx;
   state.marked[idx] = !state.marked[idx];

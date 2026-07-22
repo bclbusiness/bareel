@@ -204,6 +204,16 @@
         <label class="field-label">Session name</label>
         <input type="text" id="session-name" placeholder="e.g. Friday night Blingo!" />
       </div>
+      <div class="field">
+        <label class="field-label">Are you playing?</label>
+        <label style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;cursor:pointer">
+          <input type="checkbox" id="host-playing" checked style="width:15px;height:15px;accent-color:var(--brand);cursor:pointer;flex-shrink:0" />
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Yes, I'm playing</div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Uncheck if you're hosting only — e.g. screensharing the caller screen on a Zoom call</div>
+          </div>
+        </label>
+      </div>
       <div class="error-msg" id="setup-error"></div>
       <hr class="divider" />
       <button class="btn btn-primary btn-full" id="btn-create" onclick="createSession()">Create Blingo session</button>
@@ -270,6 +280,7 @@
         <div class="caller-label">Now calling</div>
         <div class="caller-letter" id="caller-letter" style="color:var(--brand-mid)">—</div>
         <div class="caller-number" id="caller-number">—</div>
+        <div style="font-size:12px;color:var(--brand-mid);margin-top:4px;font-style:italic;min-height:18px" id="caller-rhyme"></div>
         <div class="caller-timer-wrap">
           <svg width="48" height="48" viewBox="0 0 48 48">
             <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="4"/>
@@ -299,15 +310,15 @@
     </div>
 
     <!-- Right: host's own card (if they want to play along) -->
-    <div>
+    <div id="host-card-section">
       <div class="section-label">Your card</div>
       <div class="bingo-card-wrap">
         <div class="bingo-header">
           <div class="bingo-col-header B">B</div>
-          <div class="bingo-col-header I">I</div>
-          <div class="bingo-col-header N">N</div>
-          <div class="bingo-col-header G">G</div>
-          <div class="bingo-col-header O">O</div>
+          <div class="bingo-col-header I">L</div>
+          <div class="bingo-col-header N">I</div>
+          <div class="bingo-col-header G">N</div>
+          <div class="bingo-col-header O">G</div>
         </div>
         <div class="bingo-grid" id="host-card-grid"></div>
       </div>
@@ -327,6 +338,7 @@
         <div style="display:flex;align-items:baseline;gap:8px">
           <span style="font-size:18px;font-weight:700" id="game-caller-letter">—</span>
           <span style="font-size:36px;font-weight:500;color:white;font-family:'DM Mono',monospace;line-height:1" id="game-caller-number">—</span>
+          <div style="font-size:11px;color:var(--brand-mid);margin-top:2px;font-style:italic" id="game-rhyme"></div>
         </div>
       </div>
       <div style="text-align:center">
@@ -345,10 +357,10 @@
     <div class="bingo-card-wrap">
       <div class="bingo-header">
         <div class="bingo-col-header B">B</div>
-        <div class="bingo-col-header I">I</div>
-        <div class="bingo-col-header N">N</div>
-        <div class="bingo-col-header G">G</div>
-        <div class="bingo-col-header O">O</div>
+        <div class="bingo-col-header I">L</div>
+        <div class="bingo-col-header N">I</div>
+        <div class="bingo-col-header G">N</div>
+        <div class="bingo-col-header O">G</div>
       </div>
       <div class="bingo-grid" id="game-card-grid"></div>
     </div>
@@ -416,6 +428,7 @@ try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.w
 const COLS = ['B','I','N','G','O'];
 const COL_RANGES = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
 const COL_COLORS = { B:'var(--col-b)', I:'var(--col-i)', N:'var(--col-n)', G:'var(--col-g)', O:'var(--col-o)' };
+const RHYMES = {1: "Kelly"s eye", 2: "One little duck", 3: "Cup of tea", 4: "Knock at the door", 5: "Man alive", 6: "Tom Mix", 7: "Lucky seven", 8: "One fat lady", 9: "Doctor"s orders", 10: "Prime Minister"s den", 11: "Legs eleven", 12: "One dozen", 13: "Unlucky for some", 14: "Valentine"s day", 15: "Young and keen", 16: "Sweet sixteen", 17: "Dancing queen", 18: "Coming of age", 19: "Goodbye teens", 20: "One score", 21: "Key of the door", 22: "Two little ducks", 23: "Thee and me", 24: "Two dozen", 25: "Duck and dive", 26: "Pick and mix", 27: "Gateway to heaven", 28: "Overweight", 29: "Rise and shine", 30: "Dirty Gertie", 31: "Get up and run", 32: "Buckle my shoe", 33: "Dirty knees", 34: "Ask for more", 35: "Jump and jive", 36: "Three dozen", 37: "More than eleven", 38: "Christmas cake", 39: "Steps", 40: "Life begins", 41: "Time for fun", 42: "Winnie the Pooh", 43: "Down on your knees", 44: "Droopy drawers", 45: "Halfway there", 46: "Up to tricks", 47: "Four and seven", 48: "Four dozen", 49: "PC", 50: "Half a century", 51: "Tweak of the thumb", 52: "Danny La Rue", 53: "Stuck in a tree", 54: "Clean the floor", 55: "Snakes alive", 56: "Was she worth it", 57: "Heinz varieties", 58: "Make them wait", 59: "Brighton line", 60: "Five dozen", 61: "Baker"s bun", 62: "Tickety-boo", 63: "Tickle me", 64: "Red raw", 65: "Old age pension", 66: "Clickety click", 67: "Made in heaven", 68: "Saving Grace", 69: "Anyway up", 70: "Three score and ten", 71: "Bang on the drum", 72: "Six dozen", 73: "Queen bee", 74: "Hit the floor", 75: "Strive and strive"};
 const COL_LIGHTS = { B:'var(--col-b-light)', I:'var(--col-i-light)', N:'var(--col-n-light)', G:'var(--col-g-light)', O:'var(--col-o-light)' };
 const CALL_INTERVAL = 15;
 
@@ -568,23 +581,28 @@ async function createSession() {
   const hostMarked = Array(25).fill(false);
   hostMarked[12] = true; // free centre
 
+  const hostPlaying = document.getElementById('host-playing').checked;
   const { data, error } = await db.from('blingo_sessions').insert({
     code, name, status: 'waiting', tool_type: 'blingo',
+    host_playing: hostPlaying,
     called_numbers: [], current_call: null, call_started_at: null,
   }).select().single();
 
   btn.innerHTML = 'Create Blingo session'; btn.disabled = false;
   if (error) { showErr('setup-error', error.message); return; }
 
-  // Add host as participant
+  // Add host as participant only if they're playing
   const hostId = 'host_' + Math.random().toString(36).slice(2);
-  await db.from('blingo_participants').insert({
-    session_id: data.id, participant_id: hostId, name: 'Host',
-    card: hostCard, marked: hostMarked,
-  });
+  if (hostPlaying) {
+    await db.from('blingo_participants').insert({
+      session_id: data.id, participant_id: hostId, name: 'Host',
+      card: hostCard, marked: hostMarked,
+    });
+  }
 
   state.role = 'host'; state.sessionId = data.id; state.sessionCode = code;
   state.sessionName = name; state.participantId = hostId;
+  state.hostPlaying = hostPlaying;
   state.card = hostCard; state.marked = hostMarked;
   state.participants[hostId] = 'Host';
 
@@ -687,6 +705,8 @@ async function startGame() {
   }).eq('id', state.sessionId);
 }
 
+const COL_LETTER_DISPLAY = { B:'B', I:'L', N:'I', G:'N', O:'G' };
+
 function getCol(n) {
   if (n <= 15) return 'B';
   if (n <= 30) return 'I';
@@ -695,15 +715,25 @@ function getCol(n) {
   return 'O';
 }
 
+function getDisplayLetter(col) {
+  return COL_LETTER_DISPLAY[col] || col;
+}
+
 // ── HOST CALLER SCREEN ─────────────────────────────────────────────────────
 function startHostCaller(session) {
+  if (session.host_playing !== undefined) state.hostPlaying = session.host_playing;
   state.calledNumbers = (session.called_numbers || []).map(n => parseInt(n, 10));
   state.currentCall = session.current_call;
   state.callPool = session.call_pool || [];
   state.callIndex = session.call_index || 0;
   state.callStartedAt = session.call_started_at;
 
-  renderCard('host-card-grid', state.card, state.marked, true);
+  if (state.hostPlaying) {
+    renderCard('host-card-grid', state.card, state.marked, true);
+    document.getElementById('host-card-section').style.display = 'block';
+  } else {
+    document.getElementById('host-card-section').style.display = 'none';
+  }
   updateCallerDisplay();
   updateCalledList();
   updateCallerPlayers();
@@ -714,9 +744,11 @@ function startHostCaller(session) {
 function updateCallerDisplay() {
   const n = state.currentCall;
   const col = n ? getCol(n) : null;
-  document.getElementById('caller-letter').textContent = col || '—';
+  document.getElementById('caller-letter').textContent = col ? getDisplayLetter(col) : '—';
   document.getElementById('caller-letter').style.color = col ? COL_COLORS[col] : 'var(--brand-mid)';
   document.getElementById('caller-number').textContent = n || '—';
+  const rhymeEl = document.getElementById('caller-rhyme');
+  if (rhymeEl) rhymeEl.textContent = n ? (RHYMES[n] || '') : '';
 }
 
 function updateCalledList() {
@@ -797,8 +829,10 @@ function updateGameDisplay(session) {
   const col = n ? getCol(n) : null;
   const letterEl = document.getElementById('game-caller-letter');
   const numEl = document.getElementById('game-caller-number');
-  if (letterEl) { letterEl.textContent = col || '—'; letterEl.style.color = col ? COL_COLORS[col] : 'var(--brand-mid)'; }
+  if (letterEl) { letterEl.textContent = col ? getDisplayLetter(col) : '—'; letterEl.style.color = col ? COL_COLORS[col] : 'var(--brand-mid)'; }
   if (numEl) numEl.textContent = n || '—';
+  const rhymeEl = document.getElementById('game-rhyme');
+  if (rhymeEl) rhymeEl.textContent = n ? (RHYMES[n] || '') : '';
 }
 
 function startParticipantTimer() {

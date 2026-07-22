@@ -178,6 +178,77 @@
     <div class="how-arrow"><i class="ti ti-arrow-right" aria-hidden="true"></i></div>
     <div class="how-item"><i class="ti ti-circle-check" aria-hidden="true"></i> Done</div>
   </div>
+</main>
+
+<footer class="page-footer">
+  <span>Bareel</span> · Tools for teams · bareel.host
+</footer>
+
+<script>
+  if (window.location.search.includes('join')) {
+    window.location.replace('/join/');
+  }
+
+  const TAB_ORDER = ['work', 'home', 'fun'];
+  let currentTab = 'work';
+
+  const HERO = {
+    work: {
+      eyebrow: 'Bareel for work',
+      title: 'Free to use, lightweight productivity tools for work.',
+      sub: 'Every Bareel tool works the same way — create a session and your team can join instantly. Free and simple to use. No accounts needed for hosts or participants.',
+    },
+    home: {
+      eyebrow: 'Bareel at home',
+      title: 'Simple tools to keep your household organised and in sync.',
+      sub: 'From chore lists to meal planning — every Bareel home tool works the same way. Create a session, share the code, and everyone is on the same page instantly.',
+    },
+    fun: {
+      eyebrow: 'Bareel for fun',
+      title: 'Live multiplayer games for friends, families and teams.',
+      sub: 'No downloads, no sign-ups, no faff. Create a game, share the code, and everyone can join from their own device — the fun starts in seconds.',
+    },
+  };
+
+  function switchTab(tab, el) {
+    if (tab === currentTab) return;
+    const currentIdx = TAB_ORDER.indexOf(currentTab);
+    const newIdx     = TAB_ORDER.indexOf(tab);
+    const goingRight = newIdx > currentIdx;
+
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => {
+      t.classList.remove('active', 'slide-in-right', 'slide-in-left');
+    });
+
+    el.classList.add('active');
+    const newContent = document.getElementById('tab-' + tab);
+    if (newContent) {
+      newContent.classList.add('active', goingRight ? 'slide-in-right' : 'slide-in-left');
+    }
+
+    const h = HERO[tab];
+    if (h) {
+      document.getElementById('hero-eyebrow').textContent = h.eyebrow;
+      document.getElementById('hero-title').textContent   = h.title;
+      document.getElementById('hero-sub').textContent     = h.sub;
+    }
+
+    currentTab = tab;
+  }
+</script>
+
+</body>
+</html>
+
+  <div class="container">
+    <div class="section-label" style="margin-bottom:16px;font-size:13px;font-weight:600;letter-spacing:0.5px;color:#9999b8;text-transform:uppercase">Work</div>
+    <div class="app-grid">
+      <a href="/qa/" class="app-card live">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-message-question" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
         <div class="app-name"><span>Bareel</span> Q&amp;A</div>
         <ul class="app-bullets">
           <li>Anonymous questions submitted and upvoted in real time</li>
@@ -188,7 +259,6 @@
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
-
       <a href="/contact/" class="app-card live">
         <div class="app-icon-wrap">
           <div class="app-icon"><i class="ti ti-address-book" aria-hidden="true"></i></div>
@@ -204,7 +274,6 @@
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
-
       <a href="/timekeeper/" class="app-card live">
         <div class="app-icon-wrap">
           <div class="app-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
@@ -220,75 +289,10 @@
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
-
     </div>
-  </div>
 
-
-  <!-- FUN TAB -->
-        <div class="app-name"><span>Bareel</span> Numero</div>
-        <ul class="app-bullets">
-          <li>Use number tiles to hit a random target — closest wins</li>
-          <li>Three modes: Normal, Hard and Brutal</li>
-          <li class="useful">Useful for: Fun with friends, families and teams</li>
-        </ul>
-        <div class="app-footer">
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </a>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-trophy" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Quizzer</div>
-        <div class="app-desc">Host a live quiz for friends, family or your team — no app needed.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-grid-dots" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Battleships</div>
-        <div class="app-desc">Classic naval strategy game — play live with anyone, anywhere.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-abc" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Word Game</div>
-        <div class="app-desc">Fast-paced word challenges for groups — who'll be last standing?</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <div class="app-card soon">
-        <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
-          <div class="b-badge">B</div>
-        </div>
-        <div class="app-name"><span>Bareel</span> Countdown</div>
-        <div class="app-desc">Letters, numbers and the clock — a live group word and maths game.</div>
-        <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
-          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
-        </div>
-      </div>
-
+    <div class="section-label" style="margin-top:32px;margin-bottom:16px;font-size:13px;font-weight:600;letter-spacing:0.5px;color:#9999b8;text-transform:uppercase">Fun</div>
+    <div class="app-grid">
       <a href="/blingo/" class="app-card live">
         <div class="app-icon-wrap">
           <div class="app-icon"><i class="ti ti-diamond" aria-hidden="true"></i></div>
@@ -304,20 +308,36 @@
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
       </a>
-
-      <div class="app-card soon">
+      <a href="/numero/" class="app-card live">
         <div class="app-icon-wrap">
-          <div class="app-icon"><i class="ti ti-pencil" aria-hidden="true"></i></div>
+          <div class="app-icon"><i class="ti ti-calculator" aria-hidden="true"></i></div>
           <div class="b-badge">B</div>
         </div>
-        <div class="app-name"><span>Bareel</span> Draw &amp; Guess</div>
-        <div class="app-desc">One person draws, everyone guesses — chaotic fun for any group.</div>
+        <div class="app-name"><span>Bareel</span> Numero</div>
+        <ul class="app-bullets">
+          <li>Use number tiles to hit a random target — closest wins</li>
+          <li>Three modes: Normal, Hard and Brutal</li>
+          <li class="useful">Useful for: Fun with friends, families and teams</li>
+        </ul>
         <div class="app-footer">
-          <span class="badge badge-soon">Coming soon</span>
           <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
         </div>
-      </div>
-
+      </a>
+      <a href="/blingo/" class="app-card live">
+        <div class="app-icon-wrap">
+          <div class="app-icon"><i class="ti ti-diamond" aria-hidden="true"></i></div>
+          <div class="b-badge">B</div>
+        </div>
+        <div class="app-name"><span>Bareel</span> Blingo</div>
+        <ul class="app-bullets">
+          <li>Diamond bingo — mark your gems as numbers are called</li>
+          <li>Numbers auto-advance every 15 seconds</li>
+          <li class="useful">Useful for: Parties, team events, family game nights</li>
+        </ul>
+        <div class="app-footer">
+          <i class="ti ti-arrow-right app-arrow" aria-hidden="true"></i>
+        </div>
+      </a>
     </div>
   </div>
 

@@ -62,20 +62,6 @@
     .brand-name { font-size: 16px; font-weight: 600; color: var(--text-primary); text-decoration: none; }
     .brand-domain { font-size: 13px; color: var(--text-tertiary); }
     .topbar-nav { margin-left: auto; display: flex; gap: 4px; }
-    .nav-tab {
-      font-size: 13px; font-weight: 500;
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      border: none; background: none;
-      cursor: pointer;
-      color: var(--text-secondary);
-      transition: all 0.15s;
-      font-family: 'DM Sans', sans-serif;
-    }
-    .nav-tab:hover { background: var(--bg); color: var(--text-primary); }
-    .nav-tab.active { background: var(--brand-light); color: var(--brand-dark); }
-    .nav-tab.disabled { opacity: 0.4; cursor: not-allowed; }
-    .nav-tab.disabled:hover { background: none; color: var(--text-secondary); }
 
     .page-body { max-width: 900px; margin: 0 auto; padding: 40px 24px 60px; }
 
@@ -182,11 +168,6 @@
   <a href="/" class="logo">B</a>
   <a href="/" class="brand-name">Bareel</a>
   <span class="brand-domain">· Host a session!</span>
-  <nav class="topbar-nav">
-    <button class="nav-tab active" onclick="switchTab('work', this)">Work</button>
-    <button class="nav-tab" onclick="switchTab('home', this)">Home</button>
-    <button class="nav-tab" onclick="switchTab('fun', this)">Fun</button>
-  </nav>
 </header>
 
 <main class="page-body">
@@ -322,32 +303,6 @@
     },
   };
 
-  function switchTab(tab, el) {
-    if (tab === currentTab) return;
-    const currentIdx = TAB_ORDER.indexOf(currentTab);
-    const newIdx     = TAB_ORDER.indexOf(tab);
-    const goingRight = newIdx > currentIdx;
-
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => {
-      t.classList.remove('active', 'slide-in-right', 'slide-in-left');
-    });
-
-    el.classList.add('active');
-    const newContent = document.getElementById('tab-' + tab);
-    if (newContent) {
-      newContent.classList.add('active', goingRight ? 'slide-in-right' : 'slide-in-left');
-    }
-
-    const h = HERO[tab];
-    if (h) {
-      document.getElementById('hero-eyebrow').textContent = h.eyebrow;
-      document.getElementById('hero-title').textContent   = h.title;
-      document.getElementById('hero-sub').textContent     = h.sub;
-    }
-
-    currentTab = tab;
-  }
 </script>
 
 </body>

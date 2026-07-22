@@ -1012,6 +1012,10 @@ function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 // ── INIT ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   buildCodeInputs();
+  // Debug: log all clicks
+  document.addEventListener('click', (e) => {
+    console.log('CLICK detected on:', e.target.tagName, e.target.id, e.target.className);
+  });
   const urlParams = new URLSearchParams(window.location.search);
   const prefilledCode = urlParams.get('code');
   const isJoin = window.location.search.includes('join') || window.location.pathname.includes('join');

@@ -474,22 +474,33 @@ function renderCard(containerId, card, marked, interactive) {
   const el = document.getElementById(containerId);
   if (!el) return;
   const cells = cardToGrid(card);
-  el.innerHTML = cells.map((c, i) => {
+
+  el.innerHTML = cells.map((c) => {
     const isFree = c.num === 0;
-    const isMarked = isFree || marked[c.row * 5 + c.colIdx] || (isFree);
+    const isMarked = isFree || marked[c.row * 5 + c.colIdx];
     const col = c.col;
     const color = COL_COLORS[col];
     const lightColor = COL_LIGHTS[col];
-    const onclick = interactive && !isFree ? `onclick="markCell(${c.colIdx}, ${c.row})"` : '';
 
     return `<div class="diamond-gem${isMarked ? ' marked' : ''}${isFree ? ' free-square' : ''}"
+      data-col="${c.colIdx}" data-row="${c.row}"
       id="gem-${containerId}-${c.colIdx}-${c.row}"
-      style="background:${isMarked ? lightColor : 'white'};border:1.5px solid ${isMarked ? color : 'var(--border)'};"
-      ${onclick}>
+      style="background:${isMarked ? lightColor : 'white'};border:1.5px solid ${isMarked ? color : 'var(--border)'};">
       ${diamondSVG(color, isMarked)}
       ${!isFree ? `<span class="gem-num" style="color:${isMarked ? color : 'var(--text-secondary)'}">${c.num}</span>` : '<span class="gem-num">★</span>'}
     </div>`;
   }).join('');
+
+  // Attach click listeners via JS rather than inline onclick
+  if (interactive) {
+    el.querySelectorAll('.diamond-gem:not(.free-square)').forEach(gem => {
+      gem.addEventListener('click', () => {
+        const colIdx = parseInt(gem.dataset.col, 10);
+        const row = parseInt(gem.dataset.row, 10);
+        markCell(colIdx, row);
+      });
+    });
+  }
 }
 
 function diamondSVG(color, marked) {

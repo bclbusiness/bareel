@@ -519,12 +519,15 @@ function markCell(colIdx, row) {
   const num = parseInt(state.card[colIdx][row], 10);
   if (num === 0) return; // free square
   const called = state.calledNumbers.map(n => parseInt(n, 10));
-  console.log('markCell called:', colIdx, row, 'num:', num, 'calledNumbers:', called, 'includes:', called.includes(num));
+  console.log('markCell called:', colIdx, row, 'num:', num, 'called:', called, 'includes:', called.includes(num));
   if (!called.includes(num)) return;
 
   const idx = row * 5 + colIdx;
   state.marked[idx] = !state.marked[idx];
-  renderCard('game-card-grid', state.card, state.marked, true);
+  // Re-render whichever card grid is currently visible
+  const gridId = document.getElementById('host-card-grid') && document.getElementById('screen-caller').classList.contains('active')
+    ? 'host-card-grid' : 'game-card-grid';
+  renderCard(gridId, state.card, state.marked, true);
   checkForBlingo();
 }
 
@@ -700,7 +703,7 @@ function startHostCaller(session) {
   state.callIndex = session.call_index || 0;
   state.callStartedAt = session.call_started_at;
 
-  renderCard('host-card-grid', state.card, state.marked, false);
+  renderCard('host-card-grid', state.card, state.marked, true);
   updateCallerDisplay();
   updateCalledList();
   updateCallerPlayers();
@@ -939,6 +942,7 @@ function handleSessionUpdate(data) {
     if (state.role === 'host') {
       updateCallerDisplay();
       updateCalledList();
+      renderCard('host-card-grid', state.card, state.marked, true);
       startCallTimer();
     } else {
       // Auto-mark newly called number if on card
